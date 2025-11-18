@@ -1,6 +1,6 @@
 Django>=4.2,<5.0
 djangorestframework>=3.14.0
-djangorestframework-gis>=1.0
+djangorestframework-gis>=1.2
 psycopg2-binary>=2.9.9
 django-environ>=0.11.2
 channels>=4.0.0
