@@ -40,13 +40,13 @@ INSTALLED_APPS = [
 
     # --- API REST ---
     'rest_framework',
-    'rest_framework_gis', # Extensão GIS para a API
+    'rest_framework_gis',
 
     # --- WEBSOCKETS ---
     'channels',
 
     # --- SEUS APPS ---
-    'mapa_realtime', # O app que criaremos a seguir
+    'toaki_app',
 ]
 
 MIDDLEWARE = [
