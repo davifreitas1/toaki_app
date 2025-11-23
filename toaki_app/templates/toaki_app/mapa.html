@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa em Tempo Real | ToAki</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        #map { height: 100%; width: 100%; }
+        .status-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); 
+                      background: white; padding: 8px 20px; border-radius: 20px; 
+                      box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; font-weight: bold; }
+        .btn-logout { position: absolute; top: 10px; right: 10px; z-index: 10; background: red; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px;}
+    </style>
+</head>
+<body>
+
+    <div id="status" class="status-bar">Conectando...</div>
+    <a href="/logout/" class="btn-logout">Sair</a>
+    <div id="map"></div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initApp&loading=async" async defer></script>
+
+    <script>
+        // --- CONFIGURAÇÃO GLOBAL ---
+        const USER_ID = "{{ user_id }}";
+        const USER_TYPE = "{{ tipo_usuario }}"; // 'CLIENTE' ou 'VENDEDOR'
+        
+        let map;
+        let myMarker;       // Marcador do próprio usuário (fantasma)
+        let markers = {};   // Armazena marcadores de outros usuários { id: Marker }
+        let socket;
+        
+        // Controle de Sincronização e Estado
+        let syncInterval;   // Loop para limpar fantasmas
+        let lastLat = null; // Última posição conhecida (para o loop usar)
+        let lastLon = null;
+
+        // --- 1. INICIALIZAÇÃO (Chamado pelo Google Maps) ---
+        function initApp() {
+            initMap();
+            initWebSocket();
+        }
+
+        function initMap() {
+            // Começa no centro de SP (será atualizado pelo GPS)
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -23.5505, lng: -46.6333 },
+                zoom: 15,
+                disableDefaultUI: false, // Permite zoom e controles padrão
+                mapId: "DEMO_MAP_ID"     // Necessário para recursos modernos (opcional)
+            });
+            console.log("🗺️ Mapa carregado");
+        }
+
+        // --- 2. WEBSOCKET (A "Linha Telefônica") ---
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = protocol + window.location.host + '/ws/mapa/';
+            
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function() {
+                updateStatus("🟢 Online e Monitorando");
+                startTrackingGPS(); // Só começa a enviar GPS quando tiver conexão
+
+                // --- Sincronização Automática (Heartbeat) ---
+                // Garante que vendedores distantes (fantasmas) sejam removidos
+                clearInterval(syncInterval);
+                syncInterval = setInterval(() => {
+                   if (lastLat && lastLon) { 
+                       // Pede a lista oficial para o servidor a cada 5s
+                       sendToSocket("buscarVendedores", {
+                           lat: lastLat,
+                           lon: lastLon,
+                           raioKm: 1
+                       });
+                   }
+                }, 5000); 
+            };
+
+            socket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                handleServerMessage(data);
+            };
+
+            socket.onclose = function() {
+                updateStatus("🔴 Desconectado. Tentando reconectar...");
+                clearInterval(syncInterval); // Para o loop se cair a conexão
+                setTimeout(initWebSocket, 3000); // Tenta reconectar em 3s
+            };
+        }
+
+        // --- 3. INPUT: Enviar Dados (GPS -> Backend) ---
+        function startTrackingGPS() {
+            if (!navigator.geolocation) {
+                alert("Seu navegador não suporta Geolocalização.");
+                return;
+            }
+
+            // Opções para forçar Alta Precisão (GPS Hardware)
+            const geoOptions = {
+                enableHighAccuracy: true, 
+                timeout: 10000,           
+                maximumAge: 0             
+            };
+
+            // watchPosition: Dispara sempre que o usuário se move
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    // Atualiza globais para o loop de sync usar
+                    lastLat = position.coords.latitude;
+                    lastLon = position.coords.longitude;
+
+                    // A) Feedback Instantâneo: Move meu próprio marcador
+                    updateMyMarker(lastLat, lastLon);
+
+                    // B) Push: Envia posição para o WebSocket (Signals vão disparar)
+                    sendToSocket("atualizarLocalizacao", {
+                        lat: lastLat,
+                        lon: lastLon
+                    });
+                    
+                    // C) Pull: Busca imediata para atualizar o mapa ao andar
+                    sendToSocket("buscarVendedores", {
+                        lat: lastLat,
+                        lon: lastLon,
+                        raioKm: 1
+                    });
+                },
+                (error) => console.error("Erro GPS:", error),
+                geoOptions
+            );
+        }
+
+        function sendToSocket(action, payload) {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: action,
+                    payload: payload,
+                    requestId: generateUUID() 
+                }));
+            }
+        }
+
+        // --- 4. OUTPUT: Receber Dados (Backend -> Mapa) ---
+        function handleServerMessage(data) {
+            const action = data.action;
+            const payload = data.payload;
+
+            // Debug opcional
+            // console.log("📩 Recebido:", action, payload);
+
+            if (action === "vendedorAtualizado" || action === "vendedorMovimentou") {
+                // Atualização unitária via Signal (Push)
+                updateOtherMarker(payload);
+            } 
+            else if (action === "buscarVendedores") {
+                // Atualização em lote via Polling/Request (Pull)
+                
+                // O Serializer GeoJSON coloca a lista dentro de 'features'
+                if (payload.vendedores && payload.vendedores.features) {
+                    const listaNova = payload.vendedores.features;
+
+                    // 1. Atualiza/Cria quem está na lista
+                    listaNova.forEach(v => updateOtherMarker(v));
+
+                    // 2. COLETA DE LIXO (Remove fantasmas) 👻
+                    // Cria um Set com os IDs que o servidor diz que existem
+                    const idsValidos = new Set(listaNova.map(v => String(v.id)));
+
+                    // Verifica nossos marcadores locais
+                    for (const idNoMapa in markers) {
+                        if (!idsValidos.has(String(idNoMapa))) {
+                            console.log(`🧹 Removendo vendedor fora de alcance: ID ${idNoMapa}`);
+                            markers[idNoMapa].setMap(null); // Apaga do mapa
+                            delete markers[idNoMapa];       // Apaga da memória
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- 5. MANIPULAÇÃO DO MAPA (Visual) ---
+        
+        function updateMyMarker(lat, lon) {
+            const pos = { lat, lng: lon };
+            
+            // Centraliza o mapa na primeira vez que pega o GPS
+            if (!myMarker) {
+                map.setCenter(pos);
+                myMarker = new google.maps.Marker({
+                    position: pos,
+                    map: map,
+                    title: "Você",
+                    zIndex: 999, // Garante que você fique por cima
+                    icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" // Azul
+                });
+            } else {
+                myMarker.setPosition(pos);
+            }
+        }
+
+        function updateOtherMarker(data) {
+            // Ignora se o evento for sobre mim mesmo
+            if (data.id == USER_ID && USER_TYPE === 'VENDEDOR') return;
+
+            // Extração segura de coordenadas (suporta tanto GeoJSON quanto Payload simples)
+            const lat = data.lat || (data.geometry && data.geometry.coordinates[1]);
+            const lon = data.lon || (data.geometry && data.geometry.coordinates[0]);
+            const id = data.id;
+            
+            // Tenta pegar o nome de vários lugares possíveis
+            const nomeVendedor = data.nome || data.nome_fantasia || (data.properties && data.properties.nome_fantasia) || "Vendedor";
+            const estaOnline = (data.esta_online !== undefined) ? data.esta_online : (data.properties && data.properties.esta_online);
+
+            if (!lat || !lon) return;
+
+            // Se o vendedor ficou offline, remove
+            if (estaOnline === false) {
+                if (markers[id]) {
+                    markers[id].setMap(null);
+                    delete markers[id];
+                }
+                return;
+            }
+
+            const pos = { lat: lat, lng: lon };
+
+            // Configuração do Ícone com Label Flutuante
+            const iconConfig = {
+                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Vermelho
+                labelOrigin: new google.maps.Point(16, -10) // Ajuste Fino: X=Centro, Y=Acima
+            };
+
+            const labelConfig = {
+                text: nomeVendedor,
+                color: "#c0392b", // Vermelho Escuro
+                fontWeight: "bold",
+                fontSize: "14px",
+            };
+
+            if (markers[id]) {
+                // ATUALIZAÇÃO SUAVE
+                markers[id].setPosition(pos);
+                markers[id].setLabel(labelConfig); // Atualiza nome se mudar
+            } else {
+                // CRIAÇÃO
+                markers[id] = new google.maps.Marker({
+                    position: pos,
+                    map: map,
+                    title: nomeVendedor,
+                    icon: iconConfig,
+                    label: labelConfig
+                });
+            }
+        }
+
+        // --- UTILITÁRIOS ---
+        function updateStatus(msg) {
+            const el = document.getElementById("status");
+            if(el) el.innerText = msg;
+        }
+        
+        function generateUUID() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+    </script>
+</body>
+</html>
