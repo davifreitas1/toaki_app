@@ -23,7 +23,7 @@ def mapa_em_tempo_real(request):
     context = {
         # Passamos a chave via contexto para não hardcoder no HTML
         # Idealmente viria de settings.GOOGLE_MAPS_API_KEY
-        'google_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', 'AIzaSyAUJn-i6MImc7AEWVVJ2L08hdvRsWjmygQ'),
+        'google_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', 'KEY DO GOOGLE AQUI'),
         'user_id': request.user.id,
         'tipo_usuario': request.user.tipo_usuario, # Para logica visual (Vendedor x Cliente)
     }
