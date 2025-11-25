@@ -1,17 +1,16 @@
 import logging
 import geohash as pgh
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
 from channels.db import database_sync_to_async
-from ...models import PerfilCliente, PerfilVendedor, Usuario
+from ...models import Usuario
 from ...serializers.perfil_vendedor import PerfilVendedorSerializer
+from ...servicos.geolocalizacao import ServicoGeolocalizacao
 
 logger = logging.getLogger(__name__)
 
 class ProcessadorLocalizacao:
     """
-    Processador responsável por receber dados brutos de GPS e 
-    aplicar as regras de negócio de geolocalização.
+    Processador responsável apenas pela camada de transporte (WebSocket).
+    Gerencia Salas (Geohash simples) e delega regras de negócio para o Serviço.
     """
 
     def __init__(self, consumer):
@@ -20,113 +19,86 @@ class ProcessadorLocalizacao:
 
     async def processar_atualizacao(self, payload, request_id):
         """
-        Ação: 'atualizarLocalizacao'
-        O que faz: Grava no banco e define em qual 'sala' (geohash) o usuário está.
+        Action: 'atualizarLocalizacao'
         """
-        try:
-            lat = float(payload.get("lat"))
-            lon = float(payload.get("lon"))
-        except (ValueError, TypeError):
-            await self.consumer.enviar_erro("Latitude ou Longitude inválidas", request_id)
-            return
+        lat = payload.get("lat")
+        lon = payload.get("lon")
+        print(f"capturei latitude { lat } e longitude { lon }")
 
-        # 1. Persistência (Salvar no Banco)
-        perfil = await self._salvar_no_banco(lat, lon)
+        # --- CAMADA 1: DELEGAÇÃO AO SERVIÇO (Negócio/Banco) ---
+        perfil = await database_sync_to_async(ServicoGeolocalizacao.atualizar_posicao_usuario)(
+            self.usuario, lat, lon
+        )
         
         if not perfil:
-            await self.consumer.enviar_erro("Perfil de usuário não encontrado", request_id)
+            await self.consumer.enviar_erro("Dados inválidos ou erro ao salvar", request_id)
             return
 
-        # 2. Lógica de Salas (Geohash)
-        # Calcula o código da área (ex: '6gyf4c')
-        novo_geohash = pgh.encode(lat, lon, precision=6)
-        nome_da_sala = f"area_{novo_geohash}"
+        # --- CAMADA 2: LÓGICA DE TRANSPORTE ---
+        try:
+            novo_geohash = pgh.encode(float(lat), float(lon), precision=6)
+            nome_da_sala = f"area_{novo_geohash}"
+            print(f"{nome_da_sala}")
+            # Troca de sala se mudou de Geohash
+            if hasattr(self.consumer, 'sala_atual') and self.consumer.sala_atual != nome_da_sala:
+                await self.consumer.channel_layer.group_discard(
+                    self.consumer.sala_atual, 
+                    self.consumer.channel_name
+                )
+                print(f"Usuário mudou para: {nome_da_sala}")
+                logger.info(f"Usuário mudou para: {nome_da_sala}")
 
-        # Se mudou de área, sai da antiga e entra na nova
-        if hasattr(self.consumer, 'sala_atual') and self.consumer.sala_atual != nome_da_sala:
-            await self.consumer.channel_layer.group_discard(
-                self.consumer.sala_atual, 
-                self.consumer.channel_name
-            )
-            logger.info(f"Usuário {self.usuario.username} mudou para a área {nome_da_sala}")
+            await self.consumer.channel_layer.group_add(nome_da_sala, self.consumer.channel_name)
+            self.consumer.sala_atual = nome_da_sala
 
-        await self.consumer.channel_layer.group_add(nome_da_sala, self.consumer.channel_name)
-        self.consumer.sala_atual = nome_da_sala
+            # Resposta
+            await self.consumer.enviar_sucesso("atualizarLocalizacao", {
+                "mensagem": "OK",
+                "area_codigo": novo_geohash
+            }, request_id)
+            print("enviei consumer.enviar_sucesso")
 
-        # 3. Confirmação para o Frontend
-        await self.consumer.enviar_sucesso("atualizarLocalizacao", {
-            "mensagem": "Localização processada com sucesso",
-            "area_codigo": novo_geohash
-        }, request_id)
+            if self.usuario.tipo_usuario == Usuario.TipoUsuario.VENDEDOR:
+                await self._avisar_sala_especifica(nome_da_sala, perfil, lat, lon)
 
-        # 4. Fofoca (Broadcast): Se for vendedor, avisa quem está na sala
-        if self.usuario.tipo_usuario == Usuario.TipoUsuario.VENDEDOR:
-            await self._avisar_vizinhos(nome_da_sala, perfil, lat, lon)
-
+        except Exception as e:
+            logger.error(f"Erro no cálculo de Geohash: {e}")
+            await self.consumer.enviar_erro("Erro interno de processamento", request_id)
 
     async def buscar_vendedores_proximos(self, payload, request_id):
         """
-        Ação: 'buscarVendedores'
-        O que faz: Retorna lista de vendedores num raio de km.
+        Action: 'buscarVendedores'
         """
         lat = payload.get("lat")
         lon = payload.get("lon")
         raio = payload.get("raioKm", 1)
 
-        if not lat or not lon:
-            await self.consumer.enviar_erro("Localização obrigatória para busca", request_id)
-            return
-
-        lista_vendedores = await self._consultar_banco_vendedores(lat, lon, raio)
+        # --- CAMADA 1: DELEGAÇÃO AO SERVIÇO ---
+        qs_vendedores = await database_sync_to_async(ServicoGeolocalizacao.listar_vendedores_vizinhos)(
+            lat, lon, raio
+        )
+        
+        # Serialização
+        data = await database_sync_to_async(
+            lambda: PerfilVendedorSerializer(qs_vendedores, many=True).data
+        )()
         
         await self.consumer.enviar_sucesso("buscarVendedores", {
-            "vendedores": lista_vendedores
+            "vendedores": data
         }, request_id)
 
+    # --- Métodos Auxiliares ---
 
-    # --- Métodos Internos (Acesso ao Banco de Dados) ---
-    
-    @database_sync_to_async
-    def _salvar_no_banco(self, lat, lon):
-        ponto = Point(lon, lat, srid=4326)
-        
-        if self.usuario.tipo_usuario == Usuario.TipoUsuario.VENDEDOR:
-            perfil, _ = PerfilVendedor.objects.get_or_create(usuario=self.usuario)
-            perfil.localizacao_atual = ponto
-            perfil.esta_online = True 
-            perfil.save()
-            return perfil
-            
-        elif self.usuario.tipo_usuario == Usuario.TipoUsuario.CLIENTE:
-            perfil, _ = PerfilCliente.objects.get_or_create(usuario=self.usuario)
-            perfil.localizacao_atual = ponto
-            perfil.save()
-            return perfil
-        return None
-
-    @database_sync_to_async
-    def _consultar_banco_vendedores(self, lat, lon, raio_km):
-        ponto_usuario = Point(lon, lat, srid=4326)
-        
-        # Busca espacial: vendedores dentro do raio e online
-        qs = PerfilVendedor.objects.filter(
-            localizacao_atual__distance_lte=(ponto_usuario, D(km=raio_km)),
-            esta_online=True
-        )
-        return PerfilVendedorSerializer(qs, many=True).data
-
-    async def _avisar_vizinhos(self, nome_sala, perfil, lat, lon):
-        """
-        Envia um aviso para todos conectados na mesma 'sala' (área).
-        """
-        mensagem = {
-            "type": "evento.broadcast", # Chama o método no Consumer
+    async def _avisar_sala_especifica(self, nome_sala, perfil, lat, lon):
+        msg = {
+            "type": "evento.broadcast",
             "action": "vendedorMovimentou",
             "payload": {
                 "id": perfil.id,
                 "nome": perfil.nome_fantasia,
-                "lat": lat,
-                "lon": lon
+                "lat": float(lat),
+                "lon": float(lon),
+                "esta_online": True
             }
         }
-        await self.consumer.channel_layer.group_send(nome_sala, mensagem)
+        await self.consumer.channel_layer.group_send(nome_sala, msg)
