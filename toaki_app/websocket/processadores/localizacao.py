@@ -58,9 +58,6 @@ class ProcessadorLocalizacao:
             }, request_id)
             print("enviei consumer.enviar_sucesso")
 
-            if self.usuario.tipo_usuario == Usuario.TipoUsuario.VENDEDOR:
-                await self._avisar_sala_especifica(nome_da_sala, perfil, lat, lon)
-
         except Exception as e:
             logger.error(f"Erro no cálculo de Geohash: {e}")
             await self.consumer.enviar_erro("Erro interno de processamento", request_id)
@@ -86,19 +83,3 @@ class ProcessadorLocalizacao:
         await self.consumer.enviar_sucesso("buscarVendedores", {
             "vendedores": data
         }, request_id)
-
-    # --- Métodos Auxiliares ---
-
-    async def _avisar_sala_especifica(self, nome_sala, perfil, lat, lon):
-        msg = {
-            "type": "evento.broadcast",
-            "action": "vendedorMovimentou",
-            "payload": {
-                "id": perfil.id,
-                "nome": perfil.nome_fantasia,
-                "lat": float(lat),
-                "lon": float(lon),
-                "esta_online": True
-            }
-        }
-        await self.consumer.channel_layer.group_send(nome_sala, msg)
