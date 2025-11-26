@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/pages/mapa.css' %}">
+    <title>Mapa em Tempo Real | ToAki</title>
+</head>
+<body>
+
+    <div id="status" class="status-bar">Iniciando sistema...</div>
+    <a href="/logout/" class="btn-logout">Sair</a>
+    <div id="mapa"></div>
+
+    <script>
+        window.TOAKI_CONFIG = {
+            USER_ID: "{{ user_id }}",
+            USER_TYPE: "{{ tipo_usuario }}",
+            WS_URL: (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/mapa/'
+        };
+
+        window.onMapsLoaded = function() {
+            window.dispatchEvent(new Event('google-maps-ready'));
+        };
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=onMapsLoaded&loading=async" async defer></script>
+
+    <script type="module" src="{% static 'js/modulos/main.js' %}"></script>
+
+</body>
+</html>

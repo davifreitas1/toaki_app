@@ -1,0 +1,65 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: sans-serif;
+}
+
+#mapa { 
+    height: 100%;
+    width: 100%;
+}
+
+.status-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform:
+    translateX(-50%); 
+    background: white;
+    padding: 8px 20px;
+    border-radius: 20px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+    font-weight: bold;
+}
+
+.btn-logout {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.custom-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* O AdvancedMarker centraliza o conteúdo na coordenada. 
+    Como queremos que a ponta do pino fique na coordenada, 
+    precisamos subir o elemento (translateY) */
+    transform: translateY(-50%); 
+    cursor: pointer;
+}
+
+.marker-label {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 2px; /* Espaço entre texto e ícone */
+    text-shadow: 0px 0px 2px white; /* Contorno branco para leitura */
+    white-space: nowrap; /* Não quebra linha */
+}
+
+.marker-icon {
+    width: 32px; 
+    height: 32px;
+    display: block;
+}
