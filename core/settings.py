@@ -131,3 +131,5 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'toaki_app.Usuario'
+
+GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY', default='')

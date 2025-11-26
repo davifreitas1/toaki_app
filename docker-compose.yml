@@ -40,6 +40,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
 
 volumes:
   postgres_data:
