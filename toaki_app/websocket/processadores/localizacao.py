@@ -21,8 +21,14 @@ class ProcessadorLocalizacao:
         """
         Action: 'atualizarLocalizacao'
         """
-        lat = payload.get("lat")
-        lon = payload.get("lon")
+        serializer = GeoInputSerializer(data=payload)
+        if not serializer.is_valid():
+            await self.consumer.enviar_erro(serializer.errors)
+            return
+        dados = serializer.validated_data
+        # Agora é seguro passar 'dados' para o Serviço
+        lat = dados.get("lat")
+        lon = dados.get("lon")
         print(f"capturei latitude { lat } e longitude { lon }")
 
         # --- CAMADA 1: DELEGAÇÃO AO SERVIÇO (Negócio/Banco) ---

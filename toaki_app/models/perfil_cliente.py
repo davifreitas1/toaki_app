@@ -1,7 +1,8 @@
 from django.contrib.gis.db import models
 from .usuario import Usuario
+from .base import ModeloBase
 
-class PerfilCliente(models.Model):
+class PerfilCliente(ModeloBase):
     """
     Model de Domínio.
     Responsabilidade: Regras de negócio do Cliente.

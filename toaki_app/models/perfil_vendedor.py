@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from .usuario import Usuario
+from .base import ModeloBase
 
 class VendedorManager(models.Manager):
     def buscar_online_proximos(self, latitude, longitude, raio_km=1):
@@ -18,7 +19,7 @@ class VendedorManager(models.Manager):
             localizacao_atual__distance_lte=(ponto_referencia, D(km=raio_km))
         )
 
-class PerfilVendedor(models.Model):
+class PerfilVendedor(ModeloBase):
     usuario = models.OneToOneField(
         Usuario, 
         on_delete=models.CASCADE, 
