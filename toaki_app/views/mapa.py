@@ -8,6 +8,7 @@ def mapa_em_tempo_real(request):
     Renderiza a SPA (Single Page Application) do mapa.
     Injeta configurações iniciais no contexto.
     """
+    print(request.user, request.session.session_key)
     context = {
         # Boa prática: Usar getattr para evitar erro 500 se a chave não existir
         'google_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
