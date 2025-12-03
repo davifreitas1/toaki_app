@@ -1,0 +1,60 @@
+{% load widget_tweaks %}
+
+<div class="input-wrapper">
+    <label for="{{ field.id_for_label }}" class="label-texto">
+        {{ label|default:field.label }} </label>
+
+    {% render_field field class+="input-campo" placeholder=placeholder %}
+
+    {% if field.errors %}
+        <div class="erro-container">
+            {% for error in field.errors %}
+                <span class="erro-texto">{{ error }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .input-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: var(--espacamento-p); /* Espacamento entre label e input */
+        margin-bottom: var(--espacamento-gg);
+        text-align: left;
+    }
+    
+    .label-texto {
+        font-size: 16px;
+        color: var(--cor-preto-texto);
+        font-weight: var(--font-SemiBold);
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .input-campo {
+        width: 100%;
+        padding: var(--espacamento-regular);
+        border: 1px solid #D9D9D9;
+        border-radius: var(--raio-medio);
+        background-color: #F9F9F9;
+        font-size: 16px;
+        color: var(--cor-preto-texto);
+        outline: none;
+    }
+
+    .input-campo::placeholder {
+        color: var(--cor-preto-texto); /* Cor do placeholder mais suave */
+    }
+
+    .input-campo:focus {
+        border-color: var(--cor-marca-secundaria); /* Foco na cor da marca (Ciano) */
+        background-color: white;
+    }
+
+    .erro-texto {
+        color: var(--cor-feedback-negativo);
+        font-size: 12px;
+        margin-top: 4px;
+    }
+</style>

@@ -1,0 +1,61 @@
+<div class="form-card">
+    
+    <div class="form-header">
+        <h1 class="form-titulo">{{ titulo }}</h1>
+        {% if subtitulo %}
+            <p class="form-subtitulo">{{ subtitulo }}</p>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{{ action_url|default:'' }}" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+            {% include "componentes/atomos/input.html" with field=field %}
+        {% endfor %}
+
+        <div class="form-actions">
+            {% include "componentes/atomos/botao.html" with botao_texto=botao_texto|default:"Enviar" botao_tipo="submit" botao_fundo="botao-ciano" %}
+        </div>
+    </form>
+
+    <div class="form-footer">
+        {% block footer_links %}{% endblock %}
+    </div>
+</div>
+
+<style>
+    .form-card {
+        background-color: var(--cor-branco-generico);
+        border-radius: var(--raio-login);
+        padding: var(--espacamento-gg);
+        width: 100%;
+        max-width: 480px; /* Responsividade: Nunca passa disso */
+        box-shadow: var(--sombra-media);
+        display: flex;
+        flex-direction: column;
+        gap: var(--espacamento-g);
+    }
+
+    .form-titulo {
+        font-size: 2rem; /* Melhor usar rem que px para acessibilidade */
+        font-weight: var(--font-SemiBold);
+        color: var(--cor-preto-texto);
+        text-align: center;
+        margin-bottom: var(--espacamento-m);
+    }
+
+    .form-actions {
+        margin-top: var(--espacamento-regular);
+        width: 100%;
+    }
+    
+    /* Mobile First: Em telas pequenas, o padding diminui */
+    @media (max-width: 600px) {
+        .form-card {
+            padding: var(--espacamento-m);
+            box-shadow: none; /* Em mobile, card flat fica melhor */
+            background: transparent;
+        }
+    }
+</style>

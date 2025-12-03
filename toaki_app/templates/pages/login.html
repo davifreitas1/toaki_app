@@ -1,14 +1,220 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - ToAki</title>
-    <link rel="stylesheet" href="{% static 'css/global.css' %}">
-</head>
-<body>
 
-    {% include "./componentes/atomos/botao.html" with botao_texto="Entrar" botao_fundo="botao-ciano" %}
+{% block title %}Entrar - ToAki{% endblock %}
 
-</body>
-</html>
+{% block content %}
+<div class="auth-page-wrapper">
+
+    <div class="auth-card">
+        <div class="auth-top">
+            <h1 class="auth-header">Entrar</h1>
+
+            <form class="form-container" method="post">
+                {% csrf_token %}
+
+                {% include "componentes/atomos/input.html" with field=form.username label="E-mail" placeholder="Ex: joao.silva@exemplo.com.br" %}
+
+                {% include "componentes/atomos/input.html" with field=form.password label="Senha" placeholder="Ex: MinhaSenhaForte123!" %}
+
+                <div class="auth-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="remember">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Lembrar-me</span>
+                    </label>
+                    
+                    <a href="#" class="forgot-link">Esqueceu a senha ?</a>
+                </div>
+
+                <div class="botao-acao-container" style="margin-top: 24px;">
+                    {% include "componentes/atomos/botao.html" with botao_texto="Entrar" botao_tipo="submit" botao_fundo="botao-ciano" %}
+                </div>
+                <div class="guest-area">
+                    <a href="" class="guest-link">Entrar como Convidado</a>
+                </div>
+            </form>
+        </div>
+        
+
+        <div class="divider-area">
+            <div class="line"></div>
+            <span class="divider-text">Entrar com</span>
+            <div class="line"></div>
+        </div>
+
+        <div class="auth-bot">
+            <div class="social-row">
+                <button type="button" class="social-btn"></button>
+                <button type="button" class="social-btn"></button>
+                <button type="button" class="social-btn"></button>
+            </div>
+
+            <div class="auth-footer">
+                <span class="text-muted">Não tem conta ? </span>
+                <a href="" class="register-link">cadastre-se</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+    /* Wrapper Central */
+    .auth-page-wrapper {
+        min-height: 100vh;
+        background-color: var(--cor-fundo-primaria); /* Creme */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 20px;
+    }
+
+    /* Seta de Voltar */
+    .back-arrow {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        cursor: pointer;
+    }
+
+    /* Card Branco */
+    .auth-card {
+        background-color: white;
+        border-radius: 30px;
+        padding: 40px;
+        width: 100%;
+        max-width: 580px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .auth-top {
+        padding: 0px var(--espacamento-xg);
+    }
+
+    .auth-header {
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700; /* Bold */
+        font-size: 32px;
+        color: #333;
+        margin-bottom: 32px;
+    }
+
+    .botao-acao-container {
+        width: 266px;
+        align-self: center;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Opções (Checkbox + Link) */
+    .auth-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: -10px; /* Aproxima um pouco dos inputs */
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+    
+    /* Estilo básico para checkbox (pode ser melhorado depois com CSS custom) */
+    .checkbox-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .forgot-link {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2563EB; /* Azul */
+        text-decoration: none;
+    }
+
+    /* Convidado */
+    .guest-area {
+        text-align: center;
+        margin-top: 16px;
+    }
+    .guest-link {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2563EB;
+        text-decoration: none;
+    }
+
+    /* Divisor */
+    .divider-area {
+        display: flex;
+        align-items: center;
+        margin: 30px 0;
+    }
+    .line {
+        flex: 1;
+        height: 1px;
+        background-color: #000;
+    }
+    .divider-text {
+        padding: 0 12px;
+        font-size: 14px;
+        color: #000;
+    }
+
+    /* Social */
+    .social-row {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    .social-btn {
+        width: 50px;
+        height: 50px;
+        background-color: #D9D9D9; /* Cinza placeholder */
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* Footer */
+    .auth-footer {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .text-muted { color: #333; }
+    .register-link {
+        color: #2563EB;
+        text-decoration: none;
+    }
+    
+    /* Ajuste para o botão preencher largura total dentro do include */
+    .botao { width: 100%; }
+
+    @media (max-width: 600px) {
+        .auth-page-wrapper {
+            padding: 20px 0px 0px 0px;
+        }
+
+        .auth-card {
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+
+        .auth-top {
+            padding: var(--espacamento-pp);
+        }
+    }
+</style>
+{% endblock %}
