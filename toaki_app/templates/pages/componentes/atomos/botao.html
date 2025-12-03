@@ -1,3 +1,25 @@
-<button class="botao-login">
-    <span class="botao-login-texto">{{ botao_login_texto }}</span>
+<button class="botao {{ botao_fundo }}">
+    <span class="botao-texto">{{ botao_texto }}</span>
 </button>
+
+<style>
+    .botao {
+        border-radius: var(--raio-medio);
+        padding-top: var(--espacamento-p);
+        padding-bottom: var(--espacamento-p);
+        border: none;
+        text-align: center;
+        font-size: 20px;
+        font-weight: var(--font-SemiBold);
+        color: var(--cor-branco-generico);
+        cursor: pointer;
+    }
+
+    .botao-ciano {
+        background-color: var(--cor-marca-secundaria);
+    }
+
+    .botao-ciano:hover {
+        background: var(--cor-preto-hover) var(--cor-marca-secundaria);
+    }
+</style>

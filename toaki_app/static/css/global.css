@@ -1,20 +1,10 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    outline: none;
-    text-decoration: none;
-    list-style: none;
-    font-family: 'Montserrat', sans-serif;
-}
-
-root {
+:root {
     --cor-marca-primaria: #F79B4E;
     --cor-marca-secundaria: #0FB5B5;
     --cor-terciaria-1: #F58158;
     --cor-terciaria-2: #FFF6E9;
     --cor-terciaria-3: #F1C372;
-    --cor-branco-translucido: #FFFFFF;
+    --cor-branco-generico: #FFFFFF;
     --cor-borda-neutra: #EDEDED;
     --cor-feedback-negativo: #D93025;
     --cor-feedback-alerta: #F1C372;
@@ -45,4 +35,14 @@ root {
     --font-Regular: 400;
     --font-Medium: 500;
     --font-SemiBold: 600;  
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    text-decoration: none;
+    list-style: none;
+    font-family: 'Montserrat', sans-serif;
 }

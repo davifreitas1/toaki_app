@@ -1,8 +1,0 @@
-.botao-login {
-    border-radius: var(--raio-medio);
-    padding-top: var(---espacamento-p);
-    padding-bottom: var(---espacamento-p);
-    text-align: center;
-    font-size: 20px;
-    font-weight: var(--font-SemiBold);
-}

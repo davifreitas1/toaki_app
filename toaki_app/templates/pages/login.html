@@ -1,25 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Login - ToAki</title>
-    <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
 </head>
 <body>
-    <div class="card">
-        <h2 style="text-align: center">Acessar ToAki</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Entrar na Praia</button>
-        </form>
-        {% include "./componentes/atomos/botao.html" with botao_login_texto="Entrar" %}
-    </div>
+
+    {% include "./componentes/atomos/botao.html" with botao_texto="Entrar" botao_fundo="botao-ciano" %}
+
 </body>
 </html>

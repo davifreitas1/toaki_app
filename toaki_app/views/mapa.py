@@ -14,6 +14,5 @@ def mapa_em_tempo_real(request):
         'user_id': request.user.id,
         'tipo_usuario': request.user.tipo_usuario,
         'ws_url': getattr(settings, 'WEBSOCKET_URL', None),
-        'botao_login_texto': 'Entrar' 
     }
     return render(request, 'pages/mapa.html', context)
