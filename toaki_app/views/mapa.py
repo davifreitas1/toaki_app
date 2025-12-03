@@ -13,6 +13,7 @@ def mapa_em_tempo_real(request):
         'google_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
         'user_id': request.user.id,
         'tipo_usuario': request.user.tipo_usuario,
-        'ws_url': getattr(settings, 'WEBSOCKET_URL', None) 
+        'ws_url': getattr(settings, 'WEBSOCKET_URL', None),
+        'botao_login_texto': 'Entrar' 
     }
     return render(request, 'pages/mapa.html', context)
