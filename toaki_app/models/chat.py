@@ -18,3 +18,4 @@ class Chat(ModeloBase):
 
     def __str__(self):
         return f"Chat do pedido {self.pedido_id}"
+    
