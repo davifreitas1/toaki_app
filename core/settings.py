@@ -47,6 +47,8 @@ INSTALLED_APPS = [
 
     # --- SEUS APPS ---
     'toaki_app',
+
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

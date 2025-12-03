@@ -4,6 +4,7 @@ from channels.db import database_sync_to_async
 from ...models import Usuario
 from ...serializers.perfil_vendedor import PerfilVendedorSerializer
 from ...servicos.geolocalizacao import ServicoGeolocalizacao
+from ...serializers.coordenadas import CoordSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ProcessadorLocalizacao:
         """
         Action: 'atualizarLocalizacao'
         """
-        serializer = GeoInputSerializer(data=payload)
+        serializer = CoordSerializer(data=payload)
         if not serializer.is_valid():
             await self.consumer.enviar_erro(serializer.errors)
             return
