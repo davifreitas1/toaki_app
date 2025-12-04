@@ -1,8 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.gis import admin as gis_admin
-from .models import Avaliacao, PerfilCliente, PerfilVendedor, Usuario, Produto, Pedido, Chat, Mensagem, PedidoProduto, ChatMensagem
 from django.utils.html import mark_safe
+import base64
+
+from .models.usuario import Usuario
+from .models.perfil_cliente import PerfilCliente
+from .models.perfil_vendedor import PerfilVendedor
+from .models.produto import Produto
+from .models.pedido import Pedido
+from .models.avaliacao import Avaliacao
+from .models.chat import Chat
+from .models.mensagem import Mensagem
+from .models.chat_mensagem import ChatMensagem
+from .models.vendedor_categoria import VendedorCategoria
+
+
+
+class VendedorCategoriaInline(admin.TabularInline):
+    model = VendedorCategoria
+    extra = 1
 
 # 1. Configuração do Usuário (Auth)
 @admin.register(Usuario)
@@ -20,6 +37,8 @@ class PerfilVendedorAdmin(gis_admin.GISModelAdmin):
     list_display = ('nome_fantasia', 'usuario', 'esta_online')
     list_filter = ('esta_online',)
     search_fields = ('nome_fantasia', 'usuario__username')
+
+    inlines = [VendedorCategoriaInline]
 
 # 3. Configuração do Perfil Cliente (Com Mapa)
 @admin.register(PerfilCliente)
@@ -221,3 +240,9 @@ class ChatMensagemAdmin(admin.ModelAdmin):
     )
     ordering = ('-criado_em',)
 
+@admin.register(VendedorCategoria)
+class VendedorCategoriaAdmin(admin.ModelAdmin):
+    list_display = ("perfil_vendedor", "categoria", "criado_em")
+    list_filter = ("categoria", "perfil_vendedor")
+    search_fields = ("perfil_vendedor__nome_fantasia",)
+    ordering = ("-criado_em",)

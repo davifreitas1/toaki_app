@@ -32,10 +32,11 @@ class PerfilVendedor(ModeloBase):
     # Injeção do Manager
     objects = VendedorManager()
     
+    @property
+    def categorias_list(self):
+        return [c.get_categoria_display() for c in self.categorias.all()]
+
     class Meta:
         verbose_name = "Vendedor"
         verbose_name_plural = "Vendedores"
         db_table = "perfis_vendedores"
-
-    def __str__(self):
-        return f"Vendedor: {self.nome_fantasia}"
