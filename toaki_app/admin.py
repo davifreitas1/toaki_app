@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.gis import admin as gis_admin
 from .models import Avaliacao, PerfilCliente, PerfilVendedor, Usuario, Produto, Pedido, Chat, Mensagem, PedidoProduto, ChatMensagem
+from django.utils.html import mark_safe
 
 # 1. Configuração do Usuário (Auth)
 @admin.register(Usuario)
@@ -33,6 +34,52 @@ class PerfilClienteAdmin(gis_admin.GISModelAdmin):
     get_lat_lon.short_description = "Localização Atual"
 
 
+@admin.register(Produto)
+class ProdutoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'perfil_vendedor', 'preco', 'criado_em', 'preview_foto')
+    readonly_fields = ('preview_foto_admin',)
+
+    fields = (
+        'perfil_vendedor',
+        'nome',
+        'descricao',
+        'preco',
+        'preview_foto_admin',   # tiramos 'foto' daqui
+    )
+
+    def _foto_base64(self, obj):
+        if not obj.foto:
+            return None
+
+        dados = obj.foto
+        if isinstance(dados, memoryview):
+            dados = dados.tobytes()
+
+        return base64.b64encode(dados).decode('utf-8')
+
+    def preview_foto(self, obj):
+        b64 = self._foto_base64(obj)
+        if b64:
+            return mark_safe(
+                f'<img src="data:image/jpeg;base64,{b64}" '
+                f'width="70" height="70" style="object-fit: cover; border-radius: 5px;" />'
+            )
+        return "Sem foto"
+
+    preview_foto.short_description = 'Foto'
+
+    def preview_foto_admin(self, obj):
+        b64 = self._foto_base64(obj)
+        if b64:
+            return mark_safe(
+                f'<img src="data:image/jpeg;base64,{b64}" '
+                f'width="200" style="border-radius: 5px;" />'
+            )
+        return "Nenhuma imagem carregada."
+
+    preview_foto_admin.short_description = 'Pré-visualização'
+
+    
 @admin.register(Avaliacao)
 class AvaliacaoAdmin(admin.ModelAdmin):
     list_display = (
@@ -59,13 +106,6 @@ class AvaliacaoAdmin(admin.ModelAdmin):
             return obj.comentario[:30] + "..." if len(obj.comentario) > 30 else obj.comentario
         return "-"
     comentario_curto.short_description = "Comentário"
-
-@admin.register(Produto)
-class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'perfil_vendedor', 'preco', 'criado_em')
-    search_fields = ('nome', 'perfil_vendedor__nome_fantasia')
-    list_filter = ('perfil_vendedor',)
-
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
@@ -99,27 +139,18 @@ class PedidoAdmin(admin.ModelAdmin):
 
     ordering = ('-criado_em',)
 
-@admin.register(PedidoProduto)
-class PedidoProdutoAdmin(admin.ModelAdmin):
-    list_display = (
-        'id',
-        'pedido',
-        'produto',
-        'quantidade',
-        'criado_em',
-    )
 
-    list_filter = (
-        'produto',
-        'pedido',
-    )
 
-    search_fields = (
-        'pedido__id',
-        'produto__nome',
-    )
+    def preview_foto_admin(self, obj):
+        """Pré-visualização grande na página de edição."""
+        if obj.foto:
+            return mark_safe(
+                f'<img src="{obj.foto.url}" width="200" '
+                f'style="border-radius: 5px;" />'
+            )
+        return "Nenhuma imagem carregada."
 
-    ordering = ('-criado_em',)
+    preview_foto_admin.short_description = 'Pré-visualização'
 
 @admin.register(Mensagem)
 class MensagemAdmin(admin.ModelAdmin):

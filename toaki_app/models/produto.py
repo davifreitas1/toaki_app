@@ -12,7 +12,7 @@ class Produto(ModeloBase):
     )
     nome = models.CharField(max_length=150)
     descricao = models.TextField(blank=True)
-    foto = models.URLField(blank=True)
+    foto = models.BinaryField(blank=True, null=True)
     preco = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
