@@ -126,6 +126,17 @@ class AvaliacaoAdmin(admin.ModelAdmin):
         return "-"
     comentario_curto.short_description = "Comentário"
 
+class AvaliacaoInline(admin.StackedInline):
+    model = Avaliacao
+    extra = 0
+    can_delete = True
+
+class ChatInline(admin.StackedInline):
+    model = Chat
+    extra = 0
+    can_delete = True
+
+
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = (
@@ -157,6 +168,10 @@ class PedidoAdmin(admin.ModelAdmin):
     )
 
     ordering = ('-criado_em',)
+    inlines = [
+        ChatInline,        
+        AvaliacaoInline,   
+    ] 
 
 
 

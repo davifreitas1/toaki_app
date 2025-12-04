@@ -27,6 +27,33 @@ class Pedido(ModeloBase):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDENTE)
     pedido_visto = models.BooleanField(default=False)
 
+    chat_principal = models.OneToOneField(
+        "toaki_app.Chat",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pedido_principal",
+        help_text="Chat principal associado a este pedido (se existir).",
+    )
+
+    avaliacao_principal = models.OneToOneField(
+        "toaki_app.Avaliacao",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pedido_avaliado",
+        help_text="Avaliação principal associada a este pedido (se existir).",
+    )
+
+    avaliacao_principal = models.OneToOneField(
+        "toaki_app.Avaliacao",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pedido_avaliado",
+        help_text="Avaliação principal associada a este pedido (se existir).",
+    )
+
     class Meta:
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"

@@ -1,7 +1,6 @@
 from django.db import models
 
 from .base import ModeloBase
-from .pedido import Pedido
 from .perfil_cliente import PerfilCliente
 from .perfil_vendedor import PerfilVendedor
 
@@ -17,11 +16,14 @@ class Avaliacao(ModeloBase):
         on_delete=models.CASCADE,
         related_name="avaliacoes_recebidas",
     )
-    pedido = models.ForeignKey(
-        Pedido,
+
+    
+    pedido = models.OneToOneField(
+        "toaki_app.Pedido",
         on_delete=models.CASCADE,
-        related_name="avaliacoes",
+        related_name="avaliacao",
     )
+
     nota = models.PositiveSmallIntegerField()
     comentario = models.TextField(blank=True)
 
