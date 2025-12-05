@@ -8,11 +8,12 @@ class ToAkiConsumer(AsyncJsonWebsocketConsumer):
     """
     
     async def connect(self):
-        # Aqui validaremos o usuário depois (Autenticação)
-        if self.scope["user"].is_anonymous:
-            pass
+        self.user = self.scope["user"] 
         
-        await self.accept()
+        if self.user.is_anonymous:
+            self.close() # Rejeita quem não tem cookie
+        else:
+            self.accept()
         
         # Instancia o roteador vinculado a esta conexão
         self.roteador = RoteadorSocket(self)
