@@ -24,7 +24,7 @@ ALLOWED_HOSTS = ['*']
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
     'daphne',  # DEVE ser o primeiro para WebSockets
-
+    "corsheaders",
     # Apps padrão do Django
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,12 +42,14 @@ INSTALLED_APPS = [
 
     # WEBSOCKETS
     'channels',
+    'ninja',
 
     # SEUS APPS
     'toaki_app',
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
