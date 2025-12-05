@@ -28,3 +28,5 @@ class ToakiLoginView(LoginView):
         context['google_api_key'] = getattr(settings, 'GOOGLE_MAPS_API_KEY', '')
         context['ws_url'] = getattr(settings, 'WEBSOCKET_URL', '')
         return context
+    
+   

@@ -11,4 +11,6 @@ urlpatterns = [
 
     # Rota Principal (Mapa)
     path('', views.mapa_em_tempo_real, name='mapa'),
+
+    path("/logo", views.mostrar_logo,name='logo')
 ]
