@@ -22,7 +22,7 @@ services:
   # App Django
   web:
     build: .
-    container_name: toaki_app
+    container_name: toaki_back
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -41,6 +41,18 @@ services:
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+  frontend:
+    build: ./frontend
+    container_name: toaki_front
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=localhost:8000
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
