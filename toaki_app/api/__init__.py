@@ -6,7 +6,7 @@ from .localizacao import router as localizacao_router
 from .produtos import router as produtos_router
 from .pedidos import router as pedidos_router
 
-api.add_router("/auth", auth_router)
+api.add_router("/", auth_router)
 api.add_router("/localizacao", localizacao_router)
 api.add_router("/produtos", produtos_router)
 api.add_router("/pedidos", pedidos_router)

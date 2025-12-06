@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
 
 Usuario = get_user_model()
-router = Router(tags=["auth"])
+router = Router()
 
 
 class LoginIn(Schema):
