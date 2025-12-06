@@ -2,6 +2,7 @@ import React from 'react';
 import LogoImagem from '../componentes/atomos/LogoImagem';
 import FormularioLogin from '../componentes/organismos/FormularioLogin';
 import logoToAki from '../ativos/toaki_logo.png';
+import Icone from '../componentes/atomos/Icone';
 
 const LoginPagina = () => {
   return (
