@@ -5,9 +5,8 @@ import { useAuth } from '../contextos/AuthContext';
 
 // IMPORTS DAS PÁGINAS (crie esses arquivos em src/paginas/)
 import LoginPagina from '../paginas/LoginPagina';
-import DashboardPagina from '../paginas/DashboardPagina';
-import MapaPagina from '../paginas/MapaPagina';
 import Pagina404 from '../paginas/Pagina404';
+import TelaPrincipalCliente from '../paginas/TelaPrincipalCliente';
 
 // Componente de Rota Privada
 const RotaPrivada = ({ children }) => {
@@ -41,16 +40,7 @@ const AppRotas = () => {
           path="/app"
           element={
             <RotaPrivada>
-              <DashboardPagina />
-            </RotaPrivada>
-          }
-        />
-
-        <Route
-          path="/app/mapa"
-          element={
-            <RotaPrivada>
-              <MapaPagina />
+              <TelaPrincipalCliente />
             </RotaPrivada>
           }
         />
