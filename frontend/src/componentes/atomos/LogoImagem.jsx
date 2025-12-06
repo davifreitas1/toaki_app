@@ -5,7 +5,7 @@ const LogoImagem = ({ src, alt = 'Logo', className = '' }) => {
     <img
       src={src}
       alt={alt}
-      className={`mx-auto my-auto max-h-32 w-auto object-contain ${className}`}
+      className={`w-auto object-contain ${className}`}
     />
   );
 };

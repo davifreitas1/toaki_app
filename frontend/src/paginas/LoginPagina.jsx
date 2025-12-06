@@ -12,12 +12,12 @@ const LoginPagina = () => {
         bg-[var(--cor-fundo-primaria)]
         flex
         justify-center
-        items-center
-        px-0
       "
     >
-      <div className="w-full h-full max-w-sm flex flex-col justify-between items-center">
-        <LogoImagem src={logoToAki} className="max-h-24" />
+      <div className="w-full h-full max-w-md flex flex-col items-center">
+        <div className='py-[32px] px-[64px]'>
+          <LogoImagem src={logoToAki} className="h-[122px]" />
+        </div>
         <FormularioLogin />
       </div>
     </div>

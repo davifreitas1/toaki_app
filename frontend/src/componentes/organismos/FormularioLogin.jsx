@@ -83,7 +83,7 @@ const handleSubmit = async (evento) => {
           </p>
         )}
 
-        <div className="pt-2 flex justify-center">
+        <div className="flex justify-center">
           <BotaoPrimario type="submit" disabled={carregando}>
             {carregando ? 'Entrando...' : 'Entrar'}
           </BotaoPrimario>
