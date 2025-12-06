@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --cor-marca-primaria: #F79B4E;
+    --cor-marca-secundaria: #0FB5B5;
+    --cor-terciaria-1: #F58158;
+    --cor-terciaria-2: #FFF6E9;
+    --cor-terciaria-3: #F1C372;
+    --cor-branco-generico: #FFFFFF;
+    --cor-borda-neutra: #EDEDED;
+    --cor-feedback-negativo: #D93025;
+    --cor-feedback-alerta: #F1C372;
+    --cor-feedback-sucesso: #2E8540;
+    --cor-texto-secundaria: #757575;
+    --cor-texto-primaria: #2A2A2A;
+    --cor-fundo-secundaria: #F9F9F9;
+    --cor-fundo-primaria: #FFF6E9;
+    --cor-preto-texto: rgba(0, 0, 0, 0.73);
+    --cor-preto-hover: linear-gradient(rgba(0, 0, 0, 0.125), rgba(0, 0, 0, 0.125));
+    --sombra-leve: 0px 2px 4px 0px rgba(0, 0, 0, 0.08);
+    --sombra-media: 0px 2px 8px -2px rgba(0, 0, 0, 0.06), 0px 4px 12px -2px rgba(0, 0, 0, 0.1);
+    --sombra-grande: 0px 4px 12px -2px rgba(0, 0, 0, 0.1);
+    --raio-leve: 4px;
+    --raio-medio: 8px;
+    --raio-grande: 12px;
+    --raio-extra-grande: 16px;
+    --raio-login: 30px;
+    --espacamento-zero: 0px;
+    --espacamento-pp: 4px;
+    --espacamento-p: 8px;
+    --espacamento-regular: 12px;
+    --espacamento-m: 16px;
+    --espacamento-g: 24px;
+    --espacamento-gg: 32px;
+    --espacamento-xg: 48px;
+    --espacamento-ggg: 64px;
+    --font-Light: 300;
+    --font-Regular: 400;
+    --font-Medium: 500;
+    --font-SemiBold: 600;
+    --font-size-gg: 48px;
+    --cor-input-fundo: var(--cor-fundo-secundaria); /* #F9F9F9 */
+    --cor-input-borda: #D9D9D9;
+    --cor-input-placeholder: #D9D9D9;
+
+    --cor-link-primaria: #0051FF;
+    --cor-social-quadrado: #D9D9D9;
+
+    /* Raios de borda */
+    --radius-sm: 8px;   /* botões */
+    --radius-md: 12px;  /* inputs */
+    --radius-lg: 20px;  /* card do formulário */
+
+    /* Medidas de componentes */
+    --largura-botao-padrao: 266px;
+    --tamanho-quadrado-social: 26px;
+
+    /* Tipografia genérica */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 20px;
+    --font-size-gg: 48px; /* já existia, mantendo */
+
+    --tamanho-quadrado-social-mobile: 26px;
+    --tamanho-quadrado-social-desktop: 56px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    text-decoration: none;
+    list-style: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* src/estilos/global.css (ou equivalente) */
+
+.toaki-marker-label {
+  /* já estamos setando muita coisa inline, mas aqui você pode garantir tokens */
+  font-family: var(--font-family-base);
+  letter-spacing: 0.01em;
+}
+
+.toaki-marker-icon {
+  /* se quiser animação leve quando aparecer no mapa */
+  transition: transform 0.15s ease-out;
+}
+
+.toaki-marker-icon:hover {
+  transform: translateY(-1px) scale(1.02);
+}

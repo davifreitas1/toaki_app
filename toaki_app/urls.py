@@ -3,12 +3,7 @@ from django.contrib.auth.views import LogoutView
 from . import views
 
 urlpatterns = [
-    # Rota de Login
-    path('login/', views.ToakiLoginView.as_view(), name='login'),
-    
-    # Rota de Logout (sempre bom ter para testar users diferentes)
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
-
-    # Rota Principal (Mapa)
-    path('', views.mapa_em_tempo_real, name='mapa'),
+    path('api/login/', views.login_view, name='api_login'),
+    path('api/logout/', views.logout_view, name='api_logout'),
+    path('api/check-auth/', views.check_auth_view, name='api_check_auth'),
 ]
