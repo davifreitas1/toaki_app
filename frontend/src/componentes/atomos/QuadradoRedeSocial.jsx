@@ -5,8 +5,10 @@ const QuadradoRedeSocial = ({ children, className = '', ...props }) => {
     <button
       type="button"
       className={`
-        w-[var(--tamanho-quadrado-social)]
-        h-[var(--tamanho-quadrado-social)]
+        w-[26px]
+        h-[26px]
+        md:w-[56px]
+        md:h-[56px]
         bg-[var(--cor-social-quadrado)]
         rounded-md
         flex

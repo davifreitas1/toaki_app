@@ -76,7 +76,7 @@ const Icone = ({ path, tamanho = 24, cor = 'currentColor', aoClicar, viewBox = "
         <path 
           d={opcoes[path]} 
           stroke={cor} 
-          strokeWidth="1.5" 
+          strokeWidth="1" 
           strokeLinecap="round" 
           strokeLinejoin="round"
         />

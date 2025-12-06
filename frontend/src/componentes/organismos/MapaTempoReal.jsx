@@ -1,0 +1,166 @@
+import React, { useEffect, useRef } from 'react';
+import { useGoogleMapsApi } from '../../hooks/useGoogleMapsApi';
+import { GerenciadorMapa } from '../../servicos/gerenciadorMapa';
+import { SocketMapaClient } from '../../servicos/socketMapaClient';
+
+/**
+ * MapaTempoReal
+ *
+ * Props:
+ * - userId: id do usuário autenticado
+ * - userType: tipo ("VENDEDOR", "CLIENTE", etc.)
+ * - wsUrl: URL completa do websocket (ex: obterUrlWs('/ws/mapa/'))
+ * - className: classes adicionais para o container raiz
+ */
+const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
+  const mapsCarregados = useGoogleMapsApi();
+
+  const mapDivRef = useRef(null);
+  const mapaRef = useRef(null);
+  const socketRef = useRef(null);
+  const syncIntervalRef = useRef(null);
+  const watchIdRef = useRef(null);
+  const lastCoordsRef = useRef({ lat: null, lon: null });
+
+  // Inicialização do mapa + socket + GPS
+  useEffect(() => {
+    if (!mapsCarregados || !mapDivRef.current || !wsUrl) return;
+
+    let desmontado = false;
+
+    const mapa = new GerenciadorMapa({
+      element: mapDivRef.current,
+      userId,
+      userType,
+    });
+    mapaRef.current = mapa;
+
+    const processarMensagemSocket = (data) => {
+      const action = data.action;
+      const payload = data.payload;
+
+      if (action === 'vendedorAtualizado') {
+        mapaRef.current?.atualizarMarcadorTerceiro(payload);
+      } else if (action === 'buscarVendedores') {
+        if (payload.vendedores && payload.vendedores.features) {
+          const lista = payload.vendedores.features;
+          lista.forEach((v) =>
+            mapaRef.current?.atualizarMarcadorTerceiro(v)
+          );
+          mapaRef.current?.limparFantasmas(lista);
+        }
+      }
+    };
+
+    const iniciarRastreamentoGPS = () => {
+      if (!navigator.geolocation) {
+        console.log('Geolocalização não suportada neste dispositivo.');
+        return;
+      }
+
+      const geoOptions = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      };
+
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          lastCoordsRef.current = { lat, lon };
+
+          mapaRef.current?.atualizarMeuMarcador(lat, lon);
+
+          socketRef.current?.enviar('atualizarLocalizacao', {
+            lat,
+            lon,
+          });
+        },
+        (err) => {
+          console.error('Erro GPS:', err);
+          console.log('Erro ao obter localização.');
+        },
+        geoOptions
+      );
+
+      watchIdRef.current = watchId;
+    };
+
+    const iniciarBuscaVendedores = () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+      }
+
+      syncIntervalRef.current = setInterval(() => {
+        const { lat, lon } = lastCoordsRef.current;
+        if (lat && lon) {
+          socketRef.current?.enviar('buscarVendedores', {
+            lat,
+            lon,
+            raioKm: 1,
+          });
+        }
+      }, 5000);
+    };
+
+    const aoConectarSocket = () => {
+      if (desmontado) return;
+      console.log('Online!');
+      iniciarRastreamentoGPS();
+      iniciarBuscaVendedores();
+    };
+
+    const socket = new SocketMapaClient(
+      wsUrl,
+      processarMensagemSocket,
+      aoConectarSocket
+    );
+    socketRef.current = socket;
+
+    // Inicializa mapa e, em seguida, conecta socket
+    mapa.init().then(() => {
+      if (!desmontado) {
+        socket.conectar();
+      }
+    });
+
+    return () => {
+      desmontado = true;
+
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+      }
+
+      if (
+        watchIdRef.current !== null &&
+        navigator.geolocation &&
+        typeof navigator.geolocation.clearWatch === 'function'
+      ) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+
+      socketRef.current?.desconectar();
+    };
+  }, [mapsCarregados, wsUrl, userId, userType]);
+
+  return (
+    <div className={`flex flex-col w-full h-full ${className}`}>
+      {/* container do mapa — o pai controla altura/largura */}
+      <div
+        ref={mapDivRef}
+        className="
+          w-full
+          h-full
+          min-h-[240px]
+          rounded-[24px]
+          overflow-hidden
+          shadow-[0_4px_12px_rgba(0,0,0,0.08)]
+        "
+      />
+    </div>
+  );
+};
+
+export default MapaTempoReal;

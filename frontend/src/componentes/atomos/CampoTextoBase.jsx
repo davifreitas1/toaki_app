@@ -6,15 +6,14 @@ const CampoTextoBase = ({ className = '', ...props }) => {
       {...props}
       className={`
         w-full
-        bg-[var(--cor-input-fundo)]
+        bg-[var(--cor-fundo-secundaria)]
         border
-        border-[var(--cor-input-borda)]
-        rounded-[var(--radius-md)]
-        text-[var(--font-size-xs)]
+        border-[var(--cor-borda-neutra)]
+        rounded-[12px]
+        text-[12px] md:text-[16px]
         text-[var(--cor-texto-primaria)]
-        placeholder:text-[var(--cor-input-placeholder)]
-        h-25
-        py-2
+        placeholder:text-[#D9D9D9]
+        py-3
         px-4
         focus:outline-none
         focus:ring-2

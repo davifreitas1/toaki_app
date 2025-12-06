@@ -11,12 +11,12 @@ const BotaoPrimario = ({
       type={type}
       className={`
         w-full
-        max-w-[var(--largura-botao-padrao)]
+        max-w-[266px]
         bg-[var(--cor-marca-secundaria)]
-        [color:var(--cor-branco-generico)]
-        text-base
+        text-white
+        text-[16px] md:text-[20px]
         font-[var(--font-SemiBold)]
-        rounded-[var(--radius-sm)]
+        rounded-[8px]
         py-3
         px-4
         mx-auto
@@ -26,6 +26,7 @@ const BotaoPrimario = ({
         hover:brightness-110
         active:scale-[0.99]
         transition
+        disabled:opacity-60
         ${className}
       `}
       {...props}

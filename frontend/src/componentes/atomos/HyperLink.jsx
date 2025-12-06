@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 
 const Hyperlink = ({ to, onClick, children, className = '' }) => {
   const baseClasses = `
-    text-[var(--font-size-xs)]
-    [color:var(--cor-link-primaria)]
-    font-[var(--font-SemiBold)]
+    text-[12px] md:text-[14px]
+    text-[var(--cor-link-primaria)]
+    font-normal
   `;
 
   if (to) {

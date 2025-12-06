@@ -14,7 +14,7 @@ const CampoFormulario = ({
       <label
         htmlFor={id}
         className="
-          text-xs
+          text-[12px] md:text-[16px]
           text-black
           font-normal
         "

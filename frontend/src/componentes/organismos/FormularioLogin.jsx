@@ -16,7 +16,7 @@ const FormularioLogin = () => {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
-const handleSubmit = async (evento) => {
+  const handleSubmit = async (evento) => {
     evento.preventDefault();
     setCarregando(true);
     setErro('');
@@ -33,7 +33,6 @@ const handleSubmit = async (evento) => {
   };
 
   const handleEntrarConvidado = () => {
-    // aqui você pode implementar sua lógica de convidado
     console.log('Entrar como convidado');
   };
 
@@ -42,17 +41,19 @@ const handleSubmit = async (evento) => {
       className="
         w-full
         bg-[var(--cor-branco-generico)]
-        rounded-[var(--radius-lg)]
+        rounded-[30px]
         shadow-[0_4px_12px_rgba(0,0,0,0.08)]
         px-6
-        py-5   /* era py-6 */
+        py-6
+        md:px-14
+        md:py-10
       "
     >
-      <TituloSecao className="mb-4">Entrar</TituloSecao>  {/* era mb-6 */}
+      <TituloSecao className="mb-6 md:mb-8">Entrar</TituloSecao>
 
-      <form onSubmit={handleSubmit} className="space-y-3"> {/* era space-y-4 */}
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
         <CampoFormulario
-          label="Email"
+          label="E-mail"
           id="email"
           type="email"
           placeholder="Ex: joao.silva@exemplo.com.br"
@@ -60,7 +61,7 @@ const handleSubmit = async (evento) => {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <CampoFormulario
             label="Senha"
             id="senha"
@@ -70,7 +71,24 @@ const handleSubmit = async (evento) => {
             onChange={(e) => setSenha(e.target.value)}
           />
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <label
+              className="
+                flex items-center gap-2
+                text-[12px] md:text-[16px]
+                text-[var(--cor-texto-primaria)]
+              "
+            >
+              <input
+                type="checkbox"
+                className="
+                  w-3 h-3 md:w-4 md:h-4
+                  accent-[var(--cor-marca-secundaria)]
+                "
+              />
+              <span>Lembrar-me</span>
+            </label>
+
             <Hyperlink to="/esqueceu-senha">
               Esqueceu a senha ?
             </Hyperlink>
@@ -78,43 +96,47 @@ const handleSubmit = async (evento) => {
         </div>
 
         {erro && (
-          <p className="text-[var(--font-size-xs)] text-[var(--cor-feedback-negativo)]">
+          <p className="text-[12px] text-[var(--cor-feedback-negativo)]">
             {erro}
           </p>
         )}
 
-        <div className="flex justify-center">
+        <div className="flex justify-center pt-2">
           <BotaoPrimario type="submit" disabled={carregando}>
             {carregando ? 'Entrando...' : 'Entrar'}
           </BotaoPrimario>
         </div>
       </form>
 
-      {/* Entrar como convidado */}
       <div className="mt-4 text-center">
-        <Hyperlink onClick={handleEntrarConvidado} className="font-[var(--font-Medium)]">
+        <Hyperlink
+          onClick={handleEntrarConvidado}
+          className="font-[var(--font-Medium)]"
+        >
           Entrar como Convidado
         </Hyperlink>
       </div>
 
-      {/* Separador "Entrar com" */}
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-5 flex items-center gap-2">
         <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
-        <span className="text-[var(--font-size-xs)] text-[var(--cor-texto-secundaria)]">
+        <span
+          className="
+            text-[12px] md:text-[16px]
+            text-[var(--cor-texto-secundaria)]
+          "
+        >
           Entrar com
         </span>
         <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
       </div>
 
-      {/* Quadrados de redes sociais */}
-      <div className="mt-3 flex justify-center gap-3">
+      <div className="mt-4 flex justify-center gap-4">
         <QuadradoRedeSocial />
         <QuadradoRedeSocial />
         <QuadradoRedeSocial />
       </div>
 
-      {/* Link de cadastro */}
-      <div className="mt-5 text-center text-[var(--font-size-xs)]">
+      <div className="mt-6 text-center text-[12px] md:text-[16px]">
         <span className="text-[var(--cor-preto-texto)]">
           Não tem conta ?
         </span>{' '}
