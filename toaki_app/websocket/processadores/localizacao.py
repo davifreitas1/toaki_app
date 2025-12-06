@@ -22,7 +22,7 @@ class ProcessadorLocalizacao:
         """
         Action: 'atualizarLocalizacao'
         """
-        serializer = GeoInputSerializer(data=payload)
+        serializer = CoordSerializer(data=payload)
         if not serializer.is_valid():
             await self.consumer.enviar_erro(serializer.errors)
             return
