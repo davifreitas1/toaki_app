@@ -18,8 +18,10 @@ class LoginIn(Schema):
 class RegisterIn(Schema):
     username: str
     password: str
+    first_name: str | None = None
     email: str | None = None
     tipo_usuario: str | None = None
+    
 
 
 class UserUpdateIn(Schema):
@@ -71,10 +73,12 @@ def register(request, payload: RegisterIn):
         raise HttpError(400, "Tipo de usuário inválido")
     try:
         user = Usuario.objects.create_user(
-            username=payload.username,
+            username=payload.username,        
             email=payload.email,
             password=payload.password,
+            first_name=(payload.first_name.strip() if payload.first_name else ""),
             tipo_usuario=tipo_usuario,
+            
         )
     except IntegrityError:
         raise HttpError(400, "Usuário já existe")
