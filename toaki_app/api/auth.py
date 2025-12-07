@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
 from django.db import IntegrityError
 from ninja import Router
+from typing import List
+
 
 Usuario = get_user_model()
 router = Router()
@@ -20,6 +22,13 @@ class RegisterIn(Schema):
     password: str
     email: str | None = None
     tipo_usuario: str | None = None
+
+class UserUpdateIn(Schema):
+    username: str
+    email: str
+    tipo_usuario: str
+    password: str | None = None
+
 
 
 class UserOut(Schema):
@@ -59,9 +68,77 @@ def register(request, payload: RegisterIn):
         raise HttpError(400, "Usuário já existe")
     return user
 
+@router.put("/profile", response=UserOut)
+def put_profile(request, payload: UserUpdateIn):
+   
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
 
-@router.get("/me", response=UserOut)
-def me(request):
+    
+    if not payload.username.strip():
+        raise HttpError(400, "username inválido")
+    if not payload.email.strip():
+        raise HttpError(400, "email inválido")
+    if not payload.tipo_usuario.strip():
+        raise HttpError(400, "tipo_usuario inválido")
+
+    user = request.user
+
+    
+    new_username = payload.username.strip()
+    if Usuario.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+        raise HttpError(400, "Nome de usuário já em uso")
+    user.username = new_username
+
+    
+    user.email = payload.email.strip()
+
+    
+    tipo = payload.tipo_usuario.strip()
+    normalized = tipo.upper()
+    if hasattr(Usuario, "TipoUsuario") and hasattr(Usuario.TipoUsuario, "values"):
+        if normalized not in Usuario.TipoUsuario.values:
+            raise HttpError(400, "Tipo de usuário inválido")
+        user.tipo_usuario = normalized
+    else:
+        
+        user.tipo_usuario = tipo
+
+    
+    if payload.password:
+        user.set_password(payload.password)
+
+    try:
+        user.save()
+    except IntegrityError:
+        raise HttpError(400, "Erro de integridade ao salvar usuário")
+
+    return user
+
+@router.get("/profile", response=UserOut)
+def read_profile(request):
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
     return request.user
+
+@router.delete("/profile")
+def delete_profile(request):
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
+
+    request.user.delete()
+    return {"success": True}
+
+@router.get("/users", response=List[UserOut])
+def list_users(request):
+   
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
+
+    
+    if not request.user.is_staff:
+        raise HttpError(403, "Acesso negado: apenas administradores")
+
+    users = Usuario.objects.all()
+    
+    return list(users)
