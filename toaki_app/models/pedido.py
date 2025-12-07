@@ -23,6 +23,7 @@ class Pedido(ModeloBase):
         on_delete=models.CASCADE,
         related_name="pedidos",
     )
+
     valor_total = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDENTE)
     pedido_visto = models.BooleanField(default=False)
@@ -44,15 +45,7 @@ class Pedido(ModeloBase):
         related_name="pedido_avaliado",
         help_text="Avaliação principal associada a este pedido (se existir).",
     )
-
-    avaliacao_principal = models.OneToOneField(
-        "toaki_app.Avaliacao",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="pedido_avaliado",
-        help_text="Avaliação principal associada a este pedido (se existir).",
-    )
+    
 
     class Meta:
         verbose_name = "Pedido"
@@ -61,3 +54,12 @@ class Pedido(ModeloBase):
 
     def __str__(self):
         return f"Pedido {self.id} - {self.get_status_display()}"
+    
+    @property
+    def quantidade_itens(self):
+        return self.itens.count()
+
+    @property
+    def calcular_total(self):
+        return sum(item.subtotal for item in self.itens.all())
+

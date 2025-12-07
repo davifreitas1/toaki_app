@@ -17,7 +17,11 @@ class PedidoProduto(ModeloBase):
         related_name="pedido_produtos",
     )
     quantidade = models.PositiveIntegerField(default=1)
-
+    valor_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,     
+    )
     class Meta:
         verbose_name = "Produto do Pedido"
         verbose_name_plural = "Produtos do Pedido"
@@ -25,3 +29,7 @@ class PedidoProduto(ModeloBase):
 
     def __str__(self):
         return f"{self.quantidade}x {self.produto.nome}"
+    
+    @property
+    def subtotal(self):
+        return self.quantidade * self.valor_unitario
