@@ -3,6 +3,12 @@ from django.urls import path, include
 from django.conf import settings               
 from django.conf.urls.static import static
 from toaki_app.api import api 
+from toaki_app.api.auth import router
+
+
+
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
