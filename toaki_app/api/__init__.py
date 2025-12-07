@@ -7,6 +7,7 @@ from .produtos import router as produtos_router
 from .pedidos import router as pedidos_router
 from .perfis import router as perfis_router
 
+
 api.add_router("", auth_router)
 api.add_router("/localizacao", localizacao_router)
 api.add_router("/produtos", produtos_router)

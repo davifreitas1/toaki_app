@@ -173,52 +173,7 @@ def _perfil_vendedor_to_basic_out_safe(p: PerfilVendedor, distancia_km: float = 
     )
 
 
-# ----------------------
-# CRUD Perfis
-# ----------------------
-@router.post("/perfis/vendedor", response=PerfilVendedorOut, status_code=201)
-def criar_perfil_vendedor(request, payload: PerfilVendedorIn):
-    if not request.user.is_authenticated:
-        raise HttpError(401, "Não autenticado")
-    if getattr(request.user, "perfil_vendedor", None):
-        raise HttpError(400, "Usuário já possui perfil de vendedor")
-    try:
-        with transaction.atomic():
-            perfil = PerfilVendedor.objects.create(
-                usuario=request.user,
-                nome_fantasia=payload.nome_fantasia,
-                localizacao_atual=Point(float(payload.longitude), float(payload.latitude), srid=4326)
-                if payload.latitude is not None and payload.longitude is not None
-                else None,
-            )
-    except IntegrityError:
-        raise HttpError(400, "Erro ao criar perfil vendedor")
-    return _perfil_vendedor_to_out_safe(perfil)
-
-
-@router.post("/perfis/cliente", response=PerfilClienteOut, status_code=201)
-def criar_perfil_cliente(request, payload: PerfilClienteIn):
-    if not request.user.is_authenticated:
-        raise HttpError(401, "Não autenticado")
-    if getattr(request.user, "perfil_cliente", None):
-        raise HttpError(400, "Usuário já possui perfil de cliente")
-    try:
-        with transaction.atomic():
-            kwargs = {}
-            if hasattr(PerfilCliente, "nome"):
-                kwargs["nome"] = payload.nome or ""
-            if hasattr(PerfilCliente, "telefone"):
-                kwargs["telefone"] = payload.telefone
-            perfil = PerfilCliente.objects.create(usuario=request.user, **kwargs)
-            if payload.latitude is not None and payload.longitude is not None:
-                perfil.localizacao_atual = Point(float(payload.longitude), float(payload.latitude), srid=4326)
-                perfil.save()
-    except IntegrityError:
-        raise HttpError(400, "Erro ao criar perfil cliente")
-    return _perfil_cliente_to_out_safe(perfil)
-
-
-@router.get("/perfis/cliente", response=PerfilClienteOut)
+@router.get("/cliente", response=PerfilClienteOut)
 def get_perfil_cliente_logado(request):
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
@@ -228,7 +183,7 @@ def get_perfil_cliente_logado(request):
     return _perfil_cliente_to_out_safe(perfil)
 
 
-@router.get("/perfis/vendedor", response=PerfilVendedorOut)
+@router.get("/vendedor", response=PerfilVendedorOut)
 def get_perfil_vendedor_logado(request):
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
@@ -299,75 +254,79 @@ def listar_categorias_vendedor(request, vendor_id: int):
     return categorias
 
 
-@router.post("/vendedores/{vendor_id}/categorias", status_code=201)
+@router.post("/vendedores/{vendor_id}/categorias", response={201: dict})
 def add_categoria_vendedor(request, vendor_id: int, payload: CategoriaIn):
     """
     Adiciona categoria (string) para o vendedor usando VendedorCategoria.categoria.
-    Valida contra VendedorCategoria.CategoriaTipo when possible.
+    Retorna (201, {"ok": True}) em sucesso.
     """
     perfil = get_object_or_404(PerfilVendedor, pk=vendor_id)
 
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
-    if not (request.user.is_staff or (getattr(request.user, "perfil_vendedor", None) and request.user.perfil_vendedor.pk == perfil.pk)):
+    if not (
+        request.user.is_staff
+        or (getattr(request.user, "perfil_vendedor", None) and request.user.perfil_vendedor.pk == perfil.pk)
+    ):
         raise HttpError(403, "Somente admin ou dono pode adicionar categoria")
 
     categoria_val = (payload.categoria or "").strip()
     if not categoria_val:
         raise HttpError(400, "campo 'categoria' é obrigatório")
 
-    # Trabalhar com VendedorCategoria (espera-se campo `categoria` CharField com choices)
+    # importar VendedorCategoria (esperamos que exista)
     try:
         from ..models import VendedorCategoria
     except Exception:
         raise HttpError(500, "VendedorCategoria model não disponível no projeto")
 
-    # Validar contra choices se existir CategoriaTipo
-    valid_vals = None
+    # validar contra choices se houver
     if hasattr(VendedorCategoria, "CategoriaTipo"):
-        # extrai os valores das choices
         try:
             valid_vals = [str(c[0]) for c in getattr(VendedorCategoria, "CategoriaTipo").choices]
         except Exception:
             valid_vals = None
-
-    # match case-insensitive: encontra o valor oficial das choices
-    if valid_vals:
-        match = None
-        for v in valid_vals:
-            if v.lower() == categoria_val.lower():
-                match = v
-                break
-        if not match:
-            raise HttpError(400, f"Categoria inválida. Valores válidos: {valid_vals}")
-        categoria_to_store = match
+        if valid_vals:
+            match = None
+            for v in valid_vals:
+                if v.lower() == categoria_val.lower():
+                    match = v
+                    break
+            if not match:
+                raise HttpError(400, f"Categoria inválida. Valores válidos: {valid_vals}")
+            categoria_to_store = match
+        else:
+            categoria_to_store = categoria_val
     else:
-        # sem choices disponíveis, armazena o raw (mas limpa)
         categoria_to_store = categoria_val
 
-    # Evitar duplicata: verificar se já existe
-    exists = VendedorCategoria.objects.filter(perfil_vendedor=perfil.pk, categoria__iexact=categoria_to_store).exists()
-    if exists:
-        return {"ok": True, "msg": "Categoria já vinculada"}
+    # evita duplicata (case-insensitive)
+    if VendedorCategoria.objects.filter(perfil_vendedor=perfil.pk, categoria__iexact=categoria_to_store).exists():
+        return 201, {"ok": True, "msg": "Categoria já vinculada"}
 
     try:
         VendedorCategoria.objects.create(perfil_vendedor=perfil, categoria=categoria_to_store)
     except Exception as e:
         raise HttpError(400, f"Erro ao adicionar categoria: {e}")
 
-    return {"ok": True}
+    return 201, {"ok": True}
 
-@router.delete("/vendedores/{vendor_id}/categorias/{categoria_val}", status_code=204)
+
+@router.delete("/vendedores/{vendor_id}/categorias/{categoria_val}", response={204: None})
 def remove_categoria_vendedor(request, vendor_id: int, categoria_val: str):
     """
-    Remove a categoria (string) do vendedor. URL usa o valor string da categoria.
-    Ex: DELETE /vendedores/1/categorias/COMIDA
+    Remove a categoria (string) do vendedor.
+    URL: /vendedores/{vendor_id}/categorias/{categoria_val}
+    Retorna 204 No Content em sucesso.
     """
     perfil = get_object_or_404(PerfilVendedor, pk=vendor_id)
 
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
-    if not (request.user.is_staff or (getattr(request.user, "perfil_vendedor", None) and request.user.perfil_vendedor.pk == perfil.pk)):
+    if not (
+        request.user.is_staff
+        or (getattr(request.user, "perfil_vendedor", None) and request.user.perfil_vendedor.pk == perfil.pk)
+    ):
         raise HttpError(403, "Somente admin ou dono pode remover categoria")
 
     categoria_val = (categoria_val or "").strip()
@@ -379,15 +338,14 @@ def remove_categoria_vendedor(request, vendor_id: int, categoria_val: str):
     except Exception:
         raise HttpError(500, "VendedorCategoria model não disponível")
 
-    # tenta remover case-insensitive
+    # remove case-insensitive
     qs = VendedorCategoria.objects.filter(perfil_vendedor=perfil.pk).filter(categoria__iexact=categoria_val)
     deleted, _ = qs.delete()
     if deleted:
-        return None
+        return 204, None
 
-    # se não removeu, pode ser que stored value uses specific case, tentamos validar choices and remove exact
-    # (já usamos iexact, então se chegou aqui não existe)
     raise HttpError(404, "Associação de categoria não encontrada")
+
 
 # ----------------------
 @router.get("/localizacao/vendedores", response=List[VendedorAllOut])
