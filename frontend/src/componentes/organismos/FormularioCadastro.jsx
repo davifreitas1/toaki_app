@@ -6,31 +6,60 @@ import CampoFormulario from '../moleculas/CampoFormulario';
 import BotaoPrimario from '../atomos/BotaoPrimario';
 import QuadradoRedeSocial from '../atomos/QuadradoRedeSocial';
 import DivisorOu from '../moleculas/DivisorOu';
+import { registrarUsuario } from '../../servicos/auth';
 
 const FormularioCadastro = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    nome: '',
-    email: '',
-    senha: '',
-    confirmarSenha: ''
-  });
-  const [carregando, setCarregando] = useState(false);
+    const [form, setForm] = useState({
+      nome: '',
+      email: '',
+      senha: '',
+      confirmarSenha: ''
+    });
+    const [carregando, setCarregando] = useState(false);
+    const [erro, setErro] = useState('');
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.id]: e.target.value });
-  };
+    const handleChange = (e) => {
+      setForm({ ...form, [e.target.id]: e.target.value });
+      // Limpa erro ao digitar
+      if (erro) setErro('');
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setCarregando(true);
-    // Simulação de registro
-    console.log('Dados cadastro:', form);
-    setTimeout(() => {
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setErro('');
+
+      // Validação básica
+      if (form.senha !== form.confirmarSenha) {
+        setErro('As senhas não coincidem.');
+        return;
+      }
+      if (form.senha.length < 6) {
+        setErro('A senha deve ter pelo menos 6 caracteres.');
+        return;
+      }
+
+      setCarregando(true);
+      
+      // Chamada ao serviço
+      const resultado = await registrarUsuario({
+          nome: form.nome,
+          email: form.email,
+          senha: form.senha
+      });
+
+      if (resultado.sucesso) {
+        // Sucesso: Redireciona para o login
+        // Opcional: Poderia logar direto, mas é comum pedir login após cadastro
+        alert('Cadastro realizado com sucesso!');
+        navigate('/login');
+      } else {
+        // Exibe erro retornado pela API ou genérico
+        setErro(resultado.erro || 'Erro ao realizar cadastro. Tente novamente.');
+      }
+      
       setCarregando(false);
-      navigate('/login');
-    }, 1500);
-  };
+    };
 
   return (
     // No desktop, este container é o próprio card. Usamos 'relative' para posicionar o botão voltar absoluto.

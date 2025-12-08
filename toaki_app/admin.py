@@ -9,6 +9,7 @@ from .models.perfil_cliente import PerfilCliente
 from .models.perfil_vendedor import PerfilVendedor
 from .models.produto import Produto
 from .models.pedido import Pedido
+from .models.pedido_produto import PedidoProduto
 from .models.avaliacao import Avaliacao
 from .models.chat import Chat
 from .models.mensagem import Mensagem
@@ -137,41 +138,55 @@ class ChatInline(admin.StackedInline):
     can_delete = True
 
 
+class PedidoProdutoInline(admin.TabularInline):
+    model = PedidoProduto
+    extra = 0
+    fields = ("produto", "quantidade", "valor_unitario", "subtotal_readonly")
+    readonly_fields = ("subtotal_readonly",)
+
+    def subtotal_readonly(self, obj):
+        return obj.subtotal if obj.id else "—"
+    subtotal_readonly.short_description = "Subtotal"
+
+
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'perfil_cliente',
-        'perfil_vendedor',
-        'valor_total',
-        'status',
-        'pedido_visto',
-        'criado_em',
+        "id",
+        "perfil_cliente",
+        "perfil_vendedor",
+        "valor_total",
+        "status",
+        "pedido_visto",
+        "criado_em",
     )
 
     list_filter = (
-        'status',
-        'pedido_visto',
-        'perfil_vendedor',
-        'perfil_cliente',
+        "status",
+        "pedido_visto",
+        "perfil_vendedor",
+        "perfil_cliente",
     )
 
     search_fields = (
-        'id',
-        'perfil_cliente__usuario__username',
-        'perfil_vendedor__usuario__username',
+        "id",
+        "perfil_cliente__usuario__username",
+        "perfil_vendedor__usuario__username",
+        "itens__produto__nome",  # via related_name="itens" em PedidoProduto
     )
 
     list_editable = (
-        'status',
-        'pedido_visto',
+        "status",
+        "pedido_visto",
     )
 
-    ordering = ('-criado_em',)
+    ordering = ("-criado_em",)
+
     inlines = [
-        ChatInline,        
-        AvaliacaoInline,   
-    ] 
+        PedidoProdutoInline,
+        ChatInline,
+        AvaliacaoInline,
+    ]
 
 
 
