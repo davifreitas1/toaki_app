@@ -1,7 +1,8 @@
 import { obterUrlHttp } from '../uteis/apiConfig';
 
 export const loginUsuario = async (username, password) => {
-    const url = obterUrlHttp('/api/login/');
+    // Ninja API endpoint: /api/login (sem barra no final)
+    const url = obterUrlHttp('/api/login');
 
     try {
         const response = await fetch(url, {
@@ -9,7 +10,7 @@ export const loginUsuario = async (username, password) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            // OBRIGATÓRIO: Diz ao navegador para receber e guardar o cookie
+            // OBRIGATÓRIO: Diz ao navegador para receber e guardar o cookie de sessão
             credentials: 'include', 
             body: JSON.stringify({ username, password })
         });
@@ -23,22 +24,20 @@ export const loginUsuario = async (username, password) => {
 };
 
 export const verificarAuth = async () => {
-    const url = obterUrlHttp('/api/check-auth/');
+    const url = obterUrlHttp('/api/profile'); // Usando /profile para checar se user existe
     try {
         const response = await fetch(url, {
             method: 'GET',
-            // OBRIGATÓRIO: Envia o cookie guardado de volta pro servidor
             credentials: 'include' 
         });
-        return response.ok; // Retorna true se 200 OK
+        return response.ok;
     } catch (error) {
         return false;
     }
 }
 
 export const registrarUsuario = async ({ nome, email, senha }) => {
-  // Ajuste essa URL para a view de cadastro que você criou no Django
-  const url = obterUrlHttp('/api/registrar/');
+  const url = obterUrlHttp('/api/register');
 
   try {
     const response = await fetch(url, {
@@ -46,10 +45,15 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
       headers: {
         'Content-Type': 'application/json',
       },
+      // Backend espera username, email, password.
+      // Como o Login pede Email, usamos o email como username.
       body: JSON.stringify({
-        nome,
-        email,
-        senha,
+        username: email,
+        first_name: nome,
+        email: email,
+        password: senha,
+        // Opcional: Se quiser salvar o nome, precisaria ajustar o backend ou 
+        // salvar no perfil depois. Por enquanto segue o schema do backend.
       }),
     });
 
@@ -60,9 +64,15 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
       dados = {};
     }
 
-    return { sucesso: response.ok, dados };
+    // Tenta capturar mensagem de erro específica do backend se houver
+    let erroMsg = null;
+    if (!response.ok && dados.detail) {
+        erroMsg = dados.detail;
+    }
+
+    return { sucesso: response.ok, dados, erro: erroMsg };
   } catch (erro) {
     console.error('Erro no registro:', erro);
-    return { sucesso: false, erro };
+    return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
   }
 };

@@ -2,12 +2,20 @@ import React from 'react';
 
 const OpcoesSocial = () => {
   return (
-    <div className="flex justify-center gap-4 mt-6">
+    <div className="flex justify-center gap-4 mt-3">
       {[1, 2, 3].map((item) => (
-        <button 
-            key={item} 
-            className="w-12 h-12 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-            title="Login Social (Simulado)"
+        <button
+          key={item}
+          className="
+            w-[26px]
+            h-[26px]
+            bg-[#D9D9D9]
+            rounded-[5px]
+            hover:bg-[#cfcfcf]
+            transition-colors
+          "
+          title="Login Social (Simulado)"
+          type="button"
         />
       ))}
     </div>

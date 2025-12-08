@@ -1,4 +1,3 @@
-// frontend/src/componentes/moleculas/CampoFormulario.jsx
 import React from 'react';
 import CampoTextoBase from '../atomos/CampoTextoBase';
 
@@ -7,20 +6,26 @@ const CampoFormulario = ({
   id,
   type = 'text',
   placeholder,
+  value,
+  onChange,
   className = '',
-  erro,
   ...props
 }) => {
-  const temErro = Boolean(erro);
-
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div className={`flex flex-col gap-1 md:gap-2 ${className}`}>
       <label
         htmlFor={id}
         className="
-          text-[12px] md:text-[16px]
-          text-black
+          font-['Montserrat']
+          text-[rgba(0,0,0,0.73)]
+          
+          /* Mobile: Regular 11px */
+          text-[11px]
           font-normal
+          
+          /* Desktop: SemiBold 16px */
+          md:text-[16px]
+          md:font-semibold
         "
       >
         {label}
@@ -30,22 +35,10 @@ const CampoFormulario = ({
         id={id}
         type={type}
         placeholder={placeholder}
-        className={
-          temErro
-            ? `
-              border-[var(--cor-feedback-negativo)]
-              focus:ring-[var(--cor-feedback-negativo)]
-            `
-            : ''
-        }
+        value={value}
+        onChange={onChange}
         {...props}
       />
-
-      {temErro && (
-        <p className="mt-1 text-[11px] md:text-[12px] text-[var(--cor-feedback-negativo)]">
-          {erro}
-        </p>
-      )}
     </div>
   );
 };
