@@ -1,40 +1,44 @@
 import React from 'react';
-import LogoImagem from '../componentes/atomos/LogoImagem';
 import FormularioLogin from '../componentes/organismos/FormularioLogin';
 import HeaderPrincipal from '../componentes/organismos/HeaderPrincipal';
+import LogoImagem from '../componentes/atomos/LogoImagem';
 import logoToAki from '../ativos/toaki_logo.png';
-import Icone from '../componentes/atomos/Icone';
 
 const LoginPagina = () => {
   return (
-    <div className="min-h-screen w-full bg-[var(--cor-fundo-primaria)] flex flex-col">
-      {/* Header reutilizável (apenas desktop) */}
-      <HeaderPrincipal
-        logoSrc={logoToAki}
-        logoAlt="Tô Aki"
-        icones={[
-          {
-            path: 'usuario',
-            onClick: () => {
-              console.log('clicou avatar');
-            },
-            cor: '#777777',
-          },
-        ]}
-        exibirNoMobile={false}
-      />
+    <div className="
+      min-h-screen w-full 
+      bg-[var(--cor-fundo-primaria)] 
+      flex flex-col 
+      overflow-hidden /* Garante que não haja scroll */
+    ">
+      
+      {/* Header Desktop (Logo + Avatar) - Removemos absolute, agora é flex item */}
+      <div className="hidden md:block w-full z-20">
+        <HeaderPrincipal 
+          logoSrc={logoToAki} 
+          onAvatarClick={() => console.log('Login Avatar')} 
+        />
+      </div>
 
-      {/* Conteúdo */}
-      <main className="flex-1 flex justify-center items-center px-4 py-6 md:py-10">
-        <div className="w-full max-w-[360px] md:max-w-[720px] flex flex-col items-center gap-4">
-          {/* Logo apenas no mobile */}
-          <div className="md:hidden pt-8">
-            <LogoImagem src={logoToAki} className="h-[90px]" />
-          </div>
-
-          <FormularioLogin />
+      {/* Container Principal (Centralizado) - Flex grow para ocupar o resto da altura */}
+      <div className="flex-1 flex flex-col items-center justify-center relative w-full">
+        
+        {/* Logo Mobile (Aparece em cima do card, some no Desktop) */}
+        <div className="mb-4 flex flex-col items-center md:hidden animate-fade-in-down">
+          <LogoImagem 
+            src={logoToAki} 
+            alt="Tô Aki Logo" 
+            className="w-[197px] h-[122px] object-contain drop-shadow-sm" 
+          />
         </div>
-      </main>
+
+        {/* Card de Login */}
+        <main className="z-10 px-4 pb-4 md:p-0 flex items-center justify-center w-full">
+          <FormularioLogin />
+        </main>
+      </div>
+
     </div>
   );
 };

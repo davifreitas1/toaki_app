@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Facebook, Mail, Apple } from 'lucide-react';
 import TituloSecao from '../atomos/TituloSecao';
 import CampoFormulario from '../moleculas/CampoFormulario';
 import BotaoPrimario from '../atomos/BotaoPrimario';
 import Hyperlink from '../atomos/Hyperlink';
 import QuadradoRedeSocial from '../atomos/QuadradoRedeSocial';
+import DivisorOu from '../moleculas/DivisorOu';
 import { useAuth } from '../../contextos/AuthContext';
 
 const FormularioLogin = () => {
@@ -16,42 +18,48 @@ const FormularioLogin = () => {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
-  const handleSubmit = async (evento) => {
-    evento.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setCarregando(true);
     setErro('');
-
     const resultado = await login(email, senha);
-
-    if (resultado?.sucesso) {
-      navigate('/app');
-    } else {
-      setErro('Email ou senha inválidos.');
-    }
-
+    if (resultado?.sucesso) navigate('/app');
+    else setErro('Credenciais inválidas');
     setCarregando(false);
   };
 
-  const handleEntrarConvidado = () => {
-    console.log('Entrar como convidado');
-  };
-
   return (
-    <section
-      className="
-        w-full
-        bg-[var(--cor-branco-generico)]
-        rounded-[30px]
-        shadow-[0_4px_12px_rgba(0,0,0,0.08)]
-        px-6
-        py-6
-        md:px-14
-        md:py-10
-      "
-    >
-      <TituloSecao className="mb-6 md:mb-8">Entrar</TituloSecao>
+    <div
+      className={`
+        relative flex flex-col items-center
+        /* --- MOBILE (Base) --- */
+        w-[320px]
+        min-h-[372px]
+        bg-[#F9F9F9]
+        rounded-[20px]
+        shadow-[0_4px_4px_rgba(0,0,0,0.25)]
+        px-7 py-5 pb-6 /* Reduzi padding vertical mobile levemente */
 
-      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+        /* --- DESKTOP (md) --- */
+        md:w-[621px]
+        md:min-h-[706px]
+        md:bg-[rgba(255,255,255,0.85)]
+        md:rounded-[30px]
+        md:px-[102px]
+        md:py-[50px] /* Reduzi de 60px para 50px */
+        md:justify-center
+      `}
+    >
+      {/* Título */}
+      <TituloSecao className="
+        text-[rgba(0,0,0,0.73)] font-semibold mb-5 
+        text-[24px] md:text-[48px] md:mb-[40px] /* Reduzi margem inferior */
+      ">
+        Entrar
+      </TituloSecao>
+
+      {/* Formulário */}
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 md:gap-6">
         <CampoFormulario
           label="E-mail"
           id="email"
@@ -59,9 +67,10 @@ const FormularioLogin = () => {
           placeholder="Ex: joao.silva@exemplo.com.br"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full"
         />
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1 md:gap-3">
           <CampoFormulario
             label="Senha"
             id="senha"
@@ -69,80 +78,88 @@ const FormularioLogin = () => {
             placeholder="Ex: MinhaSenhaForte123!"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            className="w-full"
           />
-
-          <div className="flex items-center justify-between">
-            <label
-              className="
-                flex items-center gap-2
-                text-[12px] md:text-[16px]
-                text-[var(--cor-texto-primaria)]
-              "
-            >
-              <input
-                type="checkbox"
-                className="
-                  w-3 h-3 md:w-4 md:h-4
-                  accent-[var(--cor-marca-secundaria)]
-                "
-              />
-              <span>Lembrar-me</span>
+          
+          <div className="flex items-center justify-between mt-1">
+            <label className="hidden md:flex items-center gap-2 cursor-pointer select-none">
+               <div className="relative flex items-center">
+                 <input 
+                   type="checkbox" 
+                   className="
+                     peer appearance-none
+                     w-[15px] h-[15px] 
+                     border border-black 
+                     bg-[#F9F9F9] 
+                     checked:bg-[var(--cor-marca-secundaria)]
+                     checked:border-transparent
+                     transition-all
+                   " 
+                 />
+               </div>
+               <span className="text-[14px] font-semibold text-black font-['Montserrat']">
+                 Lembrar-me
+               </span>
             </label>
 
-            <Hyperlink to="/esqueceu-senha">
+            <Hyperlink 
+              to="/esqueceu-senha" 
+              className="
+                font-['Montserrat']
+                text-[var(--cor-link-primaria)]
+                text-[10px] font-semibold
+                md:text-[14px] md:font-semibold
+              "
+            >
               Esqueceu a senha ?
             </Hyperlink>
           </div>
         </div>
 
-        {erro && (
-          <p className="text-[11px] md:text-[12px] text-[var(--cor-feedback-negativo)]">
-            {erro}
-          </p>
-        )}
-        
-        <div className="flex justify-center pt-2">
+        {erro && <span className="text-red-500 text-xs md:text-sm text-center">{erro}</span>}
+
+        {/* Botão Entrar */}
+        <div className="mt-1 md:mt-6"> {/* Reduzi margem top desktop de 42px para mt-6 (~24px) */}
           <BotaoPrimario type="submit" disabled={carregando}>
             {carregando ? 'Entrando...' : 'Entrar'}
           </BotaoPrimario>
         </div>
       </form>
 
-      <div className="mt-4 text-center">
-        <Hyperlink
-          onClick={handleEntrarConvidado}
-          className="font-[var(--font-Medium)]"
+      {/* Link Convidado - Reduzi margens drasticamente */}
+      <div className="mt-3 mb-2 md:mt-4 md:mb-6">
+        <Hyperlink 
+          onClick={() => console.log('Convidado')}
+          className="
+            text-[var(--cor-link-primaria)] font-['Montserrat']
+            text-[12px] font-semibold 
+            md:text-[14px] md:font-semibold
+          "
         >
           Entrar como Convidado
         </Hyperlink>
       </div>
 
-      <div className="mt-5 flex items-center gap-2">
-        <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
-        <span
-          className="
-            text-[12px] md:text-[16px]
-            text-[var(--cor-texto-secundaria)]
-          "
-        >
-          Entrar com
-        </span>
-        <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
+      {/* Divisor "Entrar com" */}
+      <div className="w-full mb-3 md:mb-4">
+        <DivisorOu />
       </div>
 
-      <div className="mt-4 flex justify-center gap-4">
-        <QuadradoRedeSocial />
-        <QuadradoRedeSocial />
-        <QuadradoRedeSocial />
+      {/* Botões Sociais - Mais próximos do divisor */}
+      <div className="flex gap-3 md:gap-[18px] mb-4 md:mb-8">
+        <QuadradoRedeSocial icon={<Facebook />} />
+        <QuadradoRedeSocial icon={<Mail />} />
+        <QuadradoRedeSocial icon={<Apple />} />
       </div>
 
-      <div className="mt-6 text-center text-[12px] md:text-[16px]">
-        <span className="text-[var(--cor-preto-texto)]">
-          Não tem conta ?
-        </span>{' '}
-        <Hyperlink to="/cadastro">cadastre-se</Hyperlink>
+      {/* Rodapé - Cadastro */}
+      <div className="mt-auto text-[10px] md:text-[16px] font-normal text-black font-['Montserrat']">
+        <span>Não tem conta ? </span>
+        <Hyperlink to="/cadastro" className="text-[var(--cor-link-primaria)] font-semibold md:text-[16px]">
+          cadraste-se
+        </Hyperlink>
       </div>
-    </section>
+    </div>
   );
 };
 

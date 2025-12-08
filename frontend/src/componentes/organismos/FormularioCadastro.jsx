@@ -1,121 +1,91 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Facebook, Mail, Apple, ChevronLeft } from 'lucide-react';
 import TituloSecao from '../atomos/TituloSecao';
 import CampoFormulario from '../moleculas/CampoFormulario';
 import BotaoPrimario from '../atomos/BotaoPrimario';
 import QuadradoRedeSocial from '../atomos/QuadradoRedeSocial';
-import { registrarUsuario } from '../../servicos/auth';
-import Icone from '../atomos/Icone';
+import DivisorOu from '../moleculas/DivisorOu';
 
 const FormularioCadastro = () => {
   const navigate = useNavigate();
-
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [erros, setErros] = useState({});
-  const [erroGeral, setErroGeral] = useState('');
+  const [form, setForm] = useState({
+    nome: '',
+    email: '',
+    senha: '',
+    confirmarSenha: ''
+  });
   const [carregando, setCarregando] = useState(false);
 
-  const validar = () => {
-    const novoErros = {};
-
-    if (!nome.trim()) {
-      novoErros.nome = 'Informe seu nome completo.';
-    }
-
-    if (!email.trim()) {
-      novoErros.email = 'Informe um e-mail.';
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-      novoErros.email = 'Informe um e-mail válido.';
-    }
-
-    if (!senha) {
-      novoErros.senha = 'Informe uma senha.';
-    } else if (senha.length < 8) {
-      novoErros.senha = 'Use pelo menos 8 caracteres.';
-    }
-
-    if (!confirmarSenha) {
-      novoErros.confirmarSenha = 'Confirme sua senha.';
-    } else if (confirmarSenha !== senha) {
-      novoErros.confirmarSenha = 'As senhas não coincidem.';
-    }
-
-    return novoErros;
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = async (evento) => {
-    evento.preventDefault();
-    setErroGeral('');
-
-    const novoErros = validar();
-    setErros(novoErros);
-
-    if (Object.keys(novoErros).length > 0) {
-      return;
-    }
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setCarregando(true);
-
-    const resultado = await registrarUsuario({ nome, email, senha });
-
-    if (resultado?.sucesso) {
-      // você pode trocar para logar automaticamente aqui se quiser
+    // Simulação de registro
+    console.log('Dados cadastro:', form);
+    setTimeout(() => {
+      setCarregando(false);
       navigate('/login');
-    } else {
-      const mensagem =
-        resultado?.dados?.detail ||
-        'Não foi possível criar sua conta. Tente novamente.';
-      setErroGeral(mensagem);
-    }
-
-    setCarregando(false);
+    }, 1500);
   };
 
   return (
-    <section
-      className="
-        w-full
-        bg-[var(--cor-branco-generico)]
-        rounded-[30px]
-        shadow-[0_4px_12px_rgba(0,0,0,0.08)]
-        px-6
-        py-6
-        md:px-14
-        md:py-10
-      "
+    // No desktop, este container é o próprio card. Usamos 'relative' para posicionar o botão voltar absoluto.
+    <div
+      className={`
+        relative flex flex-col items-center
+        /* --- MOBILE (Base) --- */
+        w-[320px]
+        bg-[#F9F9F9]
+        rounded-[20px]
+        shadow-[0_4px_4px_rgba(0,0,0,0.25)]
+        px-7 py-6 pb-8
+
+        /* --- DESKTOP (md) --- */
+        md:w-[621px]
+        md:bg-[rgba(255,255,255,0.85)]
+        md:rounded-[30px]
+        md:px-[102px]
+        md:py-[50px]
+        md:justify-center
+      `}
     >
-      {/* Seta de voltar apenas no desktop (fica dentro do card) */}
-      <button
-        type="button"
+      {/* --- BOTÃO VOLTAR (DESKTOP APENAS) --- */}
+      {/* Absolute em relação ao Card. Topo esquerdo interno. */}
+      <button 
         onClick={() => navigate(-1)}
         className="
-          hidden md:inline-flex
-          items-center justify-center
-          w-8 h-8
-          rounded-full
-          hover:bg-[var(--cor-fundo-primaria)]
-          mb-4
+          hidden md:flex 
+          absolute 
+          top-[30px] left-[30px] /* Ajuste fino da posição interna */
+          items-center gap-1 
+          text-[16px] font-semibold font-['Montserrat'] 
+          text-black hover:opacity-70
         "
-        aria-label="Voltar"
       >
-        <Icone nome="retorno" tamanho={16} />
+        <ChevronLeft size={24} />
+        Voltar
       </button>
 
-      <TituloSecao className="mb-6 md:mb-8 text-center">
-        Criar Conta
+      {/* Título */}
+      <TituloSecao className="
+        text-[rgba(0,0,0,0.73)] font-medium mb-6 
+        text-[24px] md:text-[48px] md:mb-[40px]
+      ">
+        Cadastrar
       </TituloSecao>
 
-      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 md:gap-5">
         <CampoFormulario
           label="Nome"
           id="nome"
           placeholder="Ex: João da Silva"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          erro={erros.nome}
+          value={form.nome}
+          onChange={handleChange}
+          className="w-full"
         />
 
         <CampoFormulario
@@ -123,9 +93,9 @@ const FormularioCadastro = () => {
           id="email"
           type="email"
           placeholder="Ex: joao.silva@exemplo.com.br"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          erro={erros.email}
+          value={form.email}
+          onChange={handleChange}
+          className="w-full"
         />
 
         <CampoFormulario
@@ -133,53 +103,42 @@ const FormularioCadastro = () => {
           id="senha"
           type="password"
           placeholder="Ex: MinhaSenhaForte123!"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          erro={erros.senha}
+          value={form.senha}
+          onChange={handleChange}
+          className="w-full"
         />
 
         <CampoFormulario
-          label="Senha"
-          id="confirmar-senha"
+          label="Confirmar Senha" // Ajuste conforme label exata se tiver
+          id="confirmarSenha"
           type="password"
-          placeholder="Repita a senha"
-          value={confirmarSenha}
-          onChange={(e) => setConfirmarSenha(e.target.value)}
-          erro={erros.confirmarSenha}
+          placeholder="Ex: MinhaSenhaForte123!"
+          value={form.confirmarSenha}
+          onChange={handleChange}
+          className="w-full"
         />
 
-        {erroGeral && (
-          <p className="text-[11px] md:text-[12px] text-[var(--cor-feedback-negativo)]">
-            {erroGeral}
-          </p>
-        )}
-
-        <div className="flex justify-center pt-2">
+        {/* Botão Registrar */}
+        <div className="mt-2 md:mt-6">
           <BotaoPrimario type="submit" disabled={carregando}>
             {carregando ? 'Registrando...' : 'Registrar'}
           </BotaoPrimario>
         </div>
       </form>
 
-      <div className="mt-5 flex items-center gap-2">
-        <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
-        <span
-          className="
-            text-[12px] md:text-[16px]
-            text-[var(--cor-texto-secundaria)]
-          "
-        >
-          Entrar com
-        </span>
-        <span className="flex-1 h-px bg-[var(--cor-borda-neutra)]" />
+      {/* Divisor "Entrar com" */}
+      <div className="w-full mt-4 mb-3 md:mt-6 md:mb-4">
+        <DivisorOu />
       </div>
 
-      <div className="mt-4 flex justify-center gap-4">
-        <QuadradoRedeSocial />
-        <QuadradoRedeSocial />
-        <QuadradoRedeSocial />
+      {/* Botões Sociais */}
+      <div className="flex gap-3 md:gap-[18px] mb-2 md:mb-0">
+        <QuadradoRedeSocial icon={<Facebook />} />
+        <QuadradoRedeSocial icon={<Mail />} />
+        <QuadradoRedeSocial icon={<Apple />} />
       </div>
-    </section>
+
+    </div>
   );
 };
 

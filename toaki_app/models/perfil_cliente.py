@@ -3,10 +3,7 @@ from .usuario import Usuario
 from .base import ModeloBase
 
 class PerfilCliente(ModeloBase):
-    """
-    Model de Domínio.
-    Responsabilidade: Regras de negócio do Cliente.
-    """
+    
     usuario = models.OneToOneField(
         Usuario, 
         on_delete=models.CASCADE, 

@@ -38,7 +38,7 @@ export const verificarAuth = async () => {
 
 export const registrarUsuario = async ({ nome, email, senha }) => {
   // Ajuste essa URL para a view de cadastro que você criou no Django
-  const url = obterUrlHttp('/api/registrar/');
+  const url = obterUrlHttp('/api/register');
 
   try {
     const response = await fetch(url, {
@@ -47,9 +47,9 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        nome,
-        email,
-        senha,
+        username: email,
+        email: email,
+        password: senha,
       }),
     });
 

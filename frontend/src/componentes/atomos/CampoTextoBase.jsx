@@ -1,23 +1,34 @@
 import React from 'react';
 
-const CampoTextoBase = ({ className = '', ...props }) => {
+const CampoTextoBase = ({ id, type = 'text', placeholder, value, onChange, className = '' }) => {
   return (
     <input
-      {...props}
+      id={id}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
       className={`
         w-full
         bg-[var(--cor-fundo-secundaria)]
-        border
-        border-[var(--cor-borda-neutra)]
-        rounded-[12px]
-        text-[12px] md:text-[16px]
-        text-[var(--cor-texto-primaria)]
-        placeholder:text-[#D9D9D9]
-        py-3
-        px-4
+        border border-[var(--cor-borda-neutra)]
         focus:outline-none
-        focus:ring-2
+        focus:border-[var(--cor-marca-secundaria)]
+        focus:ring-1
         focus:ring-[var(--cor-marca-secundaria)]
+        transition-all
+        
+        /* Mobile (Default) */
+        h-[33px]
+        rounded-[12px]
+        px-3
+        text-[12px]
+        
+        /* Desktop */
+        md:h-[41px]
+        md:text-[16px]
+        md:placeholder:text-[16px]
+        
         ${className}
       `}
     />
