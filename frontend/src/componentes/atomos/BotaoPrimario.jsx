@@ -1,35 +1,34 @@
 import React from 'react';
 
-const BotaoPrimario = ({
-  children,
-  className = '',
-  type = 'button',
-  ...props
-}) => {
+const BotaoPrimario = ({ children, onClick, type = 'button', className = '', disabled = false }) => {
   return (
     <button
       type={type}
+      onClick={onClick}
+      disabled={disabled}
       className={`
         w-full
-        max-w-[266px]
+        h-[37px]
         bg-[var(--cor-marca-secundaria)]
-        text-white
-        text-[16px] md:text-[20px]
-        font-[var(--font-SemiBold)]
-        rounded-[8px]
-        py-3
-        px-4
-        mx-auto
-        block
-        text-center
-        shadow
+        text-[var(--cor-branco-generico)]
+        font-['Montserrat']
+        font-semibold
         hover:brightness-110
-        active:scale-[0.99]
-        transition
+        active:scale-[0.98]
+        transition-all
         disabled:opacity-60
+        shadow-[0_4px_4px_rgba(0,0,0,0.25)]
+        flex items-center justify-center
+        
+        /* Mobile */
+        text-[16px]
+        rounded-[8px]
+
+        /* Desktop */
+        md:text-[20px] 
+        
         ${className}
       `}
-      {...props}
     >
       {children}
     </button>

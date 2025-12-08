@@ -5,6 +5,7 @@ import { useAuth } from '../contextos/AuthContext';
 
 // IMPORTS DAS PÁGINAS (crie esses arquivos em src/paginas/)
 import LoginPagina from '../paginas/LoginPagina';
+import CadastroPagina from '../paginas/CadastroPagina';
 import Pagina404 from '../paginas/Pagina404';
 import TelaPrincipalCliente from '../paginas/TelaPrincipalCliente';
 
@@ -32,8 +33,9 @@ const AppRotas = () => {
         {/* Redireciona "/" para "/app" (Dashboard) */}
         <Route path="/" element={<Navigate to="/app" replace />} />
 
-        {/* Rota pública de login */}
+        {/* Rotas públicas */}
         <Route path="/login" element={<LoginPagina />} />
+        <Route path="/cadastro" element={<CadastroPagina />} />
 
         {/* Rotas protegidas */}
         <Route

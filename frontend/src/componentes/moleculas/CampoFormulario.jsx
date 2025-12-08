@@ -6,17 +6,26 @@ const CampoFormulario = ({
   id,
   type = 'text',
   placeholder,
+  value,
+  onChange,
   className = '',
   ...props
 }) => {
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div className={`flex flex-col gap-1 md:gap-2 ${className}`}>
       <label
         htmlFor={id}
         className="
-          text-[12px] md:text-[16px]
-          text-black
+          font-['Montserrat']
+          text-[rgba(0,0,0,0.73)]
+          
+          /* Mobile: Regular 11px */
+          text-[11px]
           font-normal
+          
+          /* Desktop: SemiBold 16px */
+          md:text-[16px]
+          md:font-semibold
         "
       >
         {label}
@@ -26,6 +35,8 @@ const CampoFormulario = ({
         id={id}
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
         {...props}
       />
     </div>

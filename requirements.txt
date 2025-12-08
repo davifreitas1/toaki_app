@@ -8,4 +8,5 @@ daphne>=4.0.0
 channels-redis>=4.1.0
 python-geohash>=0.8.5
 geopy>=2.4.0
+django-ninja>=0.22.0
 django-cors-headers>=4.3.0

@@ -35,3 +35,34 @@ export const verificarAuth = async () => {
         return false;
     }
 }
+
+export const registrarUsuario = async ({ nome, email, senha }) => {
+  // Ajuste essa URL para a view de cadastro que você criou no Django
+  const url = obterUrlHttp('/api/register');
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: email,
+        email: email,
+        password: senha,
+      }),
+    });
+
+    let dados = {};
+    try {
+      dados = await response.json();
+    } catch {
+      dados = {};
+    }
+
+    return { sucesso: response.ok, dados };
+  } catch (erro) {
+    console.error('Erro no registro:', erro);
+    return { sucesso: false, erro };
+  }
+};

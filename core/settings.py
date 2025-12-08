@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-import environ # Biblioteca django-environ
+import environ  # Biblioteca django-environ
 
 # 1. Configuração do Environ (Para ler variáveis do Docker)
 env = environ.Env(
@@ -23,10 +23,8 @@ ALLOWED_HOSTS = ['*']
 
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
-    # 'daphne' DEVE ser o primeiro para assumir o controle do comando 'runserver'
-    # e permitir WebSockets no desenvolvimento.
-    'daphne',
-    
+    'daphne',  # DEVE ser o primeiro para WebSockets
+    "corsheaders",
     # Apps padrão do Django
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,23 +33,23 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # --- GEODJANGO ---
+    # GEODJANGO
     'django.contrib.gis',
 
-    # --- API REST ---
+    # API REST
     'rest_framework',
     'rest_framework_gis',
 
-    # --- WEBSOCKETS ---
+    # WEBSOCKETS
     'channels',
+    'ninja',
 
-    # --- SEUS APPS ---
-    'corsheaders',
+    # SEUS APPS
     'toaki_app',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,7 +78,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # Adicione pastas de templates globais aqui se precisar
+        'DIRS': [],  # Adicione pastas de templates globais aqui se precisar
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -95,41 +93,36 @@ TEMPLATES = [
 
 # 4. Configuração WSGI e ASGI
 WSGI_APPLICATION = 'core.wsgi.application'
-# Onde está o objeto 'application' do Channels (criaremos este arquivo depois)
 ASGI_APPLICATION = 'core.asgi.application'
 
 # 5. Banco de Dados (PostGIS)
-# Lendo as variáveis passadas pelo docker-compose.yml
 DATABASES = {
     'default': {
-        # ENGINE CRUCIAL: Use o backend do PostGIS, não o do Postgres comum
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'), # Nome do serviço no docker-compose ('db')
+        'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
     }
 }
 
-# 6. Configuração do Channels (Redis)
+# 6. Channels (Redis)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # Lê a URL do Redis do docker-compose (redis://redis:6379/0)
             "hosts": [env('REDIS_URL')],
         },
     },
 }
 
-# 7. Validadores de Senha (Padrão)
+# 7. Validação de senha
 AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # 8. Internacionalização
@@ -140,10 +133,12 @@ USE_TZ = True
 
 # 9. Arquivos Estáticos
 STATIC_URL = 'static/'
-# Onde o Django coletará os estáticos em produção (dentro do container)
-STATIC_ROOT = BASE_DIR / 'staticfiles' 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Configuração do ID do campo padrão
+# 10. Arquivos de mídia (uploads de usuários)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'toaki_app.Usuario'

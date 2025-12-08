@@ -1,27 +1,32 @@
 import React from 'react';
 
-const QuadradoRedeSocial = ({ children, className = '', ...props }) => {
+const QuadradoRedeSocial = ({ icon, onClick }) => {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`
-        w-[26px]
-        h-[26px]
-        md:w-[56px]
-        md:h-[56px]
-        bg-[var(--cor-social-quadrado)]
-        rounded-md
-        flex
-        items-center
-        justify-center
-        shadow-sm
-        hover:brightness-110
-        transition
-        ${className}
+        bg-[#D9D9D9] 
+        flex 
+        items-center 
+        justify-center 
+        hover:bg-[#c0c0c0] 
+        transition-colors
+        
+        /* Mobile */
+        w-[26px] 
+        h-[26px] 
+        rounded-[5px]
+
+        /* Desktop */
+        md:w-[57px] 
+        md:h-[57px]
+        md:rounded-[10px]
       `}
-      {...props}
     >
-      {children}
+      {icon && React.cloneElement(icon, { 
+        className: "w-4 h-4 md:w-8 md:h-8 text-[#555]" // Ícone cresce no desktop
+      })}
     </button>
   );
 };
