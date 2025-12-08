@@ -6,9 +6,9 @@ import Icone from '../atomos/Icone';
  * HeaderPrincipal
  *
  * Props:
- * - logoSrc: string (URL da logo)
- * - logoAlt: string (texto alternativo da logo)
- * - icones: array de objetos { path, onClick, cor }
+ * - logoSrc: string
+ * - logoAlt: string
+ * - icones: array de objetos { path, onClick, cor, comFundo?: boolean }
  * - exibirNoMobile: boolean (default false → só desktop)
  */
 const HeaderPrincipal = ({
@@ -25,50 +25,59 @@ const HeaderPrincipal = ({
         ${visibilidade}
         w-full
         bg-[var(--cor-fundo-secundaria)]
-        shadow-[0_2px_8px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.1)]
+        shadow-[0_4px_4px_rgba(0,0,0,0.10)]
       `}
     >
       <div
         className="
-          max-w-6xl
-          mx-auto
+          w-full
           flex
           items-center
           justify-between
-          px-6
-          md:px-8
-          py-7
+          px-4
+          py-4
         "
       >
-        {/* Logo: 72px de altura → 72 + 28 + 28 = 128px de header */}
+        {/* Logo alinhada à esquerda */}
         <LogoImagem src={logoSrc} alt={logoAlt} className="h-[72px]" />
 
-        {/* Área de ícones à direita (1 ou vários) */}
-        <div className="flex items-center gap-4">
-          {icones.map((icone, indice) => (
-            <button
-              key={indice}
-              type="button"
-              onClick={icone.onClick}
-              className="
-                w-12
-                h-12
+        {/* Ícones alinhados à direita */}
+        <div className="flex items-center gap-6">
+          {icones.map((icone, indice) => {
+            const comFundo = icone.comFundo;
+
+            const btnClasses = comFundo
+              ? `
+                flex items-center justify-center
+                w-12 h-12
                 rounded-full
-                border
-                border-[var(--cor-borda-neutra)]
-                flex
-                items-center
-                justify-center
                 bg-[var(--cor-branco-generico)]
-              "
-            >
-              <Icone
-                path={icone.path}
-                tamanho={48}
-                cor={icone.cor || '#777777'}
-              />
-            </button>
-          ))}
+                shadow-[0_4px_4px_rgba(0,0,0,0.10)]
+                transition active:scale-95
+              `
+              : `
+                flex items-center justify-center
+                p-2
+                transition active:scale-95
+              `;
+
+            const tamanhoIcone = icone.tamanho || 28;
+
+            return (
+              <button
+                key={indice}
+                type="button"
+                onClick={icone.onClick}
+                className={btnClasses}
+              >
+                <Icone
+                  path={icone.path}
+                  tamanho={tamanhoIcone}
+                  cor={icone.cor || '#777777'}
+                />
+              </button>
+            );
+          })}
         </div>
       </div>
     </header>

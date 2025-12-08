@@ -96,11 +96,11 @@ const FormularioLogin = () => {
         </div>
 
         {erro && (
-          <p className="text-[12px] text-[var(--cor-feedback-negativo)]">
+          <p className="text-[11px] md:text-[12px] text-[var(--cor-feedback-negativo)]">
             {erro}
           </p>
         )}
-
+        
         <div className="flex justify-center pt-2">
           <BotaoPrimario type="submit" disabled={carregando}>
             {carregando ? 'Entrando...' : 'Entrar'}
