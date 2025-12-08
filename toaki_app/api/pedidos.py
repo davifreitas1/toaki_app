@@ -1,12 +1,14 @@
 
 from decimal import Decimal
 from typing import List
+from django.shortcuts import get_object_or_404
 
 from django.db import transaction
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
 from ..models import Pedido, PerfilCliente, PerfilVendedor, Produto, PedidoProduto
+
 
 router = Router(tags=["pedidos"])
 
@@ -28,6 +30,12 @@ class PedidoOut(Schema):
     valor_total: float
     status: str
     pedido_visto: bool
+
+class PedidoUpdateIn(Schema):
+    status: str | None = None
+    pedido_visto: bool | None = None
+
+
 
 
 @router.post("/", response=PedidoOut)
@@ -139,3 +147,108 @@ def listar_pedidos_cliente(request):
         )
         for p in pedidos
     ]
+
+
+@router.delete("/{pedido_id}", response=PedidoOut)
+def deletar_pedido(request, pedido_id: str):
+    # Se o router /pedidos estiver com auth=SessionAuth(),
+    # aqui já temos request.user autenticado.
+
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    user = request.user
+
+    # Tenta pegar os perfis (nem todo user vai ter os dois)
+    perfil_cliente = getattr(user, "perfil_cliente", None)
+    perfil_vendedor = getattr(user, "perfil_vendedor", None)
+
+    # Cliente que fez o pedido
+    is_cliente_dono = (
+        perfil_cliente is not None
+        and str(perfil_cliente.pk) == str(pedido.perfil_cliente_id)
+    )
+
+    # Vendedor dono do pedido
+    is_vendedor_dono = (
+        perfil_vendedor is not None
+        and str(perfil_vendedor.pk) == str(pedido.perfil_vendedor_id)
+    )
+
+    # Admin (opcional manter)
+    is_admin = getattr(user, "is_staff", False)
+
+    if not (is_cliente_dono or is_vendedor_dono or is_admin):
+        raise HttpError(
+            403,
+            "Somente o cliente, o vendedor responsável ou um admin podem deletar este pedido",
+        )
+
+    # Guarda os dados antes de deletar, para poder retornar
+    resposta = PedidoOut(
+        id=str(pedido.id),
+        perfil_cliente_id=str(pedido.perfil_cliente_id),
+        perfil_vendedor_id=str(pedido.perfil_vendedor_id),
+        valor_total=float(pedido.valor_total),
+        status=pedido.status,
+        pedido_visto=pedido.pedido_visto,
+    )
+
+    pedido.delete()
+
+    return resposta
+
+
+@router.put("/{pedido_id}", response=PedidoOut)
+def atualizar_pedido(request, pedido_id: str, payload: PedidoUpdateIn):
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
+
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+
+    user = request.user
+    perfil_vendedor = getattr(user, "perfil_vendedor", None)
+
+    
+    is_owner = False
+    if perfil_vendedor is not None:
+        try:
+            is_owner = str(perfil_vendedor.pk) == str(pedido.perfil_vendedor_id)
+        except Exception:
+            is_owner = False
+
+    is_admin = getattr(user, "is_staff", False)
+
+    if not (is_owner or is_admin):
+        raise HttpError(403, "Somente o dono do pedido (ou admin) pode atualizar este pedido")
+
+    
+    if payload.status is None and payload.pedido_visto is None:
+        raise HttpError(400, "Nada para atualizar")
+
+        # Atualizar status (se enviado)
+    if payload.status is not None:
+        # valida se está dentro das choices
+        valid_status = {choice[0] for choice in Pedido.Status.choices}
+        if payload.status not in valid_status:
+            raise HttpError(400, f"Status inválido: {payload.status}")
+        pedido.status = payload.status
+
+    # Atualizar flag de visualização (se enviado)
+    if payload.pedido_visto is not None:
+        pedido.pedido_visto = payload.pedido_visto
+
+    pedido.save()
+
+    return PedidoOut(
+        id=str(pedido.id),
+        perfil_cliente_id=str(pedido.perfil_cliente_id),
+        perfil_vendedor_id=str(pedido.perfil_vendedor_id),
+        valor_total=float(pedido.valor_total),
+        status=pedido.status,
+        pedido_visto=pedido.pedido_visto,
+    )
+
+
+
+
+
+    
