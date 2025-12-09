@@ -12,6 +12,8 @@ import { SocketMapaClient } from '../../servicos/socketMapaClient';
  * - className
  * - raioKm (opcional, default 1)
  * - onVendedorClick (opcional) → recebe dados do vendedor + coords do cliente
+ * - vendedorRastreadoId (opcional) → id do perfil_vendedor a rastrear
+ * - onDistanciaRastreamentoChange (opcional) → recebe km (number) ou null
  */
 const MapaTempoReal = ({
   userId,
@@ -20,6 +22,8 @@ const MapaTempoReal = ({
   className = '',
   raioKm = 1,
   onVendedorClick,
+  vendedorRastreadoId,
+  onDistanciaRastreamentoChange,
 }) => {
   const mapsCarregados = useGoogleMapsApi();
 
@@ -48,6 +52,7 @@ const MapaTempoReal = ({
           });
         }
       },
+      onTrackingDistanceChange: onDistanciaRastreamentoChange || (() => {}),
     });
     mapaRef.current = mapa;
 
@@ -157,7 +162,13 @@ const MapaTempoReal = ({
 
       socketRef.current?.desconectar();
     };
-  }, [mapsCarregados, wsUrl, userId, userType, raioKm]);
+  }, [mapsCarregados, wsUrl, userId, userType, raioKm, onDistanciaRastreamentoChange]);
+
+  // Efeito só para ligar/desligar o rastreio, sem recriar o mapa
+  useEffect(() => {
+    if (!mapaRef.current) return;
+    mapaRef.current.setRastreamento(vendedorRastreadoId || null);
+  }, [vendedorRastreadoId]);
 
   return (
     <div className={`flex flex-col w-full h-full ${className}`}>

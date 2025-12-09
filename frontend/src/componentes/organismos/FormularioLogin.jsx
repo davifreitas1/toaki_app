@@ -156,7 +156,7 @@ const FormularioLogin = () => {
       <div className="mt-auto text-[10px] md:text-[16px] font-normal text-black font-['Montserrat']">
         <span>Não tem conta ? </span>
         <Hyperlink to="/cadastro" className="text-[var(--cor-link-primaria)] font-semibold md:text-[16px]">
-          cadraste-se
+          cadastre-se
         </Hyperlink>
       </div>
     </div>
