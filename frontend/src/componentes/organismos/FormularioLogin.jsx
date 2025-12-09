@@ -4,7 +4,7 @@ import { Facebook, Mail, Apple } from 'lucide-react';
 import TituloSecao from '../atomos/TituloSecao';
 import CampoFormulario from '../moleculas/CampoFormulario';
 import BotaoPrimario from '../atomos/BotaoPrimario';
-import Hyperlink from '../atomos/Hyperlink';
+import Hyperlink from '../atomos/HyperLink';
 import QuadradoRedeSocial from '../atomos/QuadradoRedeSocial';
 import DivisorOu from '../moleculas/DivisorOu';
 import { useAuth } from '../../contextos/AuthContext';
