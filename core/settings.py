@@ -21,6 +21,7 @@ DEBUG = env('DEBUG', default=False)
 # Permite acesso de qualquer lugar (necessário para Docker/React Native/Leaflet)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 
+
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
     'daphne',  # DEVE ser o primeiro para WebSockets

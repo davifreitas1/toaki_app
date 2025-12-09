@@ -24,4 +24,5 @@ COPY . /app/
 EXPOSE 8000
 
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"]
-# se o módulo for outro, troque para: "toaki_app.asgi:application"
+
+ENTRYPOINT ["./entrypoint.sh"]
