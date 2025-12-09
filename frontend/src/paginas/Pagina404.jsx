@@ -1,2 +1,6 @@
-const Pagina404 = () => <h1>Página 404</h1>;
+import PainelAjudaSuporte from "../componentes/organismos/PainelAjudaSuporte";
+import PainelAlterarDados from "../componentes/organismos/PainelAlterarDados";
+import PainelEditarPerfil from "../componentes/organismos/PainelEditarPerfil";
+
+const Pagina404 = () => <PainelAjudaSuporte/>;
 export default Pagina404;

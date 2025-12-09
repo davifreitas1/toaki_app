@@ -8,6 +8,9 @@ import LoginPagina from '../paginas/LoginPagina';
 import CadastroPagina from '../paginas/CadastroPagina';
 import Pagina404 from '../paginas/Pagina404';
 import TelaPrincipalCliente from '../paginas/TelaPrincipalCliente';
+import PainelEditarPerfil from '../componentes/organismos/PainelEditarPerfil';
+import PainelAlterarDados from '../componentes/organismos/PainelAlterarDados';
+import PainelAjudaSuporte from '../componentes/organismos/PainelAjudaSuporte';
 
 // Componente de Rota Privada
 const RotaPrivada = ({ children }) => {
@@ -36,6 +39,9 @@ const AppRotas = () => {
         {/* Rotas públicas */}
         <Route path="/login" element={<LoginPagina />} />
         <Route path="/cadastro" element={<CadastroPagina />} />
+        <Route path="/perfil/editar" element={<PainelEditarPerfil />} />
+        <Route path="/perfil/dados" element={<PainelAlterarDados />} />
+        <Route path="/perfil/ajuda" element={<PainelAjudaSuporte />} />
 
         {/* Rotas protegidas */}
         <Route

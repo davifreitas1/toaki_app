@@ -16,6 +16,8 @@ import {
   Tag,
   User,
   X,
+  Dock,
+  IdCard,
 } from 'lucide-react';
 
 const MAPA_ICONES = {
@@ -34,6 +36,8 @@ const MAPA_ICONES = {
   email: Mail,
   calendario: Calendar,
   editar: Edit2,
+  documento: Dock,
+  idRegistro: IdCard,
 };
 
 const Icone = ({
