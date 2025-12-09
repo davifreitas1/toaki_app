@@ -21,8 +21,10 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+# Garantir permissão ao entrypoint
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8000
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"]
-
+# EXECUTA o entrypoint (migra -> superuser -> daphne)
 ENTRYPOINT ["./entrypoint.sh"]
