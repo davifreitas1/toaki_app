@@ -1,40 +1,97 @@
 import { obterUrlHttp } from '../uteis/apiConfig';
 
 export const loginUsuario = async (username, password) => {
-    // Ninja API endpoint: /api/login (sem barra no final)
-    const url = obterUrlHttp('/api/login');
+  const url = obterUrlHttp('/api/login');
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // OBRIGATÓRIO: Diz ao navegador para receber e guardar o cookie de sessão
-            credentials: 'include', 
-            body: JSON.stringify({ username, password })
-        });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ username, password }),
+    });
 
-        const dados = await response.json();
-        return { sucesso: response.ok, dados };
-    } catch (erro) {
-        console.error("Erro no login:", erro);
-        return { sucesso: false, erro };
-    }
+    const dados = await response.json();
+    return { sucesso: response.ok, dados };
+  } catch (erro) {
+    console.error('Erro no login:', erro);
+    return { sucesso: false, erro };
+  }
 };
 
+/**
+ * Busca o perfil de cliente (nome, telefone, etc.)
+ * GET /api/perfis/cliente
+ */
+export const obterPerfilCliente = async () => {
+  const url = obterUrlHttp('/api/perfis/cliente');
+
+  const resposta = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!resposta.ok) {
+    return null;
+  }
+
+  try {
+    return await resposta.json();
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Verifica se há sessão válida e retorna dados ricos do usuário.
+ * Usa:
+ * - GET /api/profile  → id, username, email, tipo_usuario
+ * - GET /api/perfis/cliente → nome amigável do cliente
+ */
 export const verificarAuth = async () => {
-    const url = obterUrlHttp('/api/profile'); // Usando /profile para checar se user existe
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            credentials: 'include' 
-        });
-        return response.ok;
-    } catch (error) {
-        return false;
+  const urlProfile = obterUrlHttp('/api/profile');
+
+  try {
+    const respProfile = await fetch(urlProfile, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!respProfile.ok) {
+      return { autenticado: false, usuario: null };
     }
-}
+
+    const dadosProfile = await respProfile.json();
+    console.log(dadosProfile);
+    
+
+    let perfilCliente = null;
+    try {
+      perfilCliente = await obterPerfilCliente();
+      console.log(perfilCliente);
+      
+    } catch (erroPerfil) {
+      console.error('Erro ao buscar perfil do cliente:', erroPerfil);
+    }
+
+    const usuario = {
+      id: dadosProfile.id,
+      username: dadosProfile.username,
+      email: dadosProfile.email,
+      tipo_usuario: dadosProfile.tipo_usuario,
+      perfilCliente,
+      // nome amigável para telas: usa perfil.nome se existir, senão cai pro username
+      nome: perfilCliente?.nome || dadosProfile.username,
+    };
+
+    return { autenticado: true, usuario };
+  } catch (error) {
+    console.error('Erro ao verificar auth:', error);
+    return { autenticado: false, usuario: null };
+  }
+};
 
 export const registrarUsuario = async ({ nome, email, senha }) => {
   const url = obterUrlHttp('/api/register');
@@ -45,15 +102,11 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Backend espera username, email, password.
-      // Como o Login pede Email, usamos o email como username.
       body: JSON.stringify({
         username: email,
         first_name: nome,
         email: email,
         password: senha,
-        // Opcional: Se quiser salvar o nome, precisaria ajustar o backend ou 
-        // salvar no perfil depois. Por enquanto segue o schema do backend.
       }),
     });
 
@@ -64,10 +117,9 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
       dados = {};
     }
 
-    // Tenta capturar mensagem de erro específica do backend se houver
     let erroMsg = null;
     if (!response.ok && dados.detail) {
-        erroMsg = dados.detail;
+      erroMsg = dados.detail;
     }
 
     return { sucesso: response.ok, dados, erro: erroMsg };
