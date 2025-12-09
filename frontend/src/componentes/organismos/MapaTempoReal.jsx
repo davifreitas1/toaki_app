@@ -1,18 +1,26 @@
+// src/componentes/organismos/MapaTempoReal.jsx
 import React, { useEffect, useRef } from 'react';
 import { useGoogleMapsApi } from '../../hooks/useGoogleMapsApi';
 import { GerenciadorMapa } from '../../servicos/gerenciadorMapa';
 import { SocketMapaClient } from '../../servicos/socketMapaClient';
 
 /**
- * MapaTempoReal
- *
  * Props:
- * - userId: id do usuário autenticado
- * - userType: tipo ("VENDEDOR", "CLIENTE", etc.)
- * - wsUrl: URL completa do websocket (ex: obterUrlWs('/ws/mapa/'))
- * - className: classes adicionais para o container raiz
+ * - userId
+ * - userType
+ * - wsUrl
+ * - className
+ * - raioKm (opcional, default 1)
+ * - onVendedorClick (opcional) → recebe dados do vendedor + coords do cliente
  */
-const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
+const MapaTempoReal = ({
+  userId,
+  userType,
+  wsUrl,
+  className = '',
+  raioKm = 1,
+  onVendedorClick,
+}) => {
   const mapsCarregados = useGoogleMapsApi();
 
   const mapDivRef = useRef(null);
@@ -22,7 +30,6 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
   const watchIdRef = useRef(null);
   const lastCoordsRef = useRef({ lat: null, lon: null });
 
-  // Inicialização do mapa + socket + GPS
   useEffect(() => {
     if (!mapsCarregados || !mapDivRef.current || !wsUrl) return;
 
@@ -32,6 +39,15 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
       element: mapDivRef.current,
       userId,
       userType,
+      onVendedorClick: (vendedorBasico) => {
+        if (typeof onVendedorClick === 'function') {
+          const { lat, lon } = lastCoordsRef.current || {};
+          onVendedorClick({
+            ...vendedorBasico,
+            clienteCoords: { lat, lon },
+          });
+        }
+      },
     });
     mapaRef.current = mapa;
 
@@ -80,7 +96,6 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
         },
         (err) => {
           console.error('Erro GPS:', err);
-          console.log('Erro ao obter localização.');
         },
         geoOptions
       );
@@ -99,7 +114,7 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
           socketRef.current?.enviar('buscarVendedores', {
             lat,
             lon,
-            raioKm: 1,
+            raioKm,
           });
         }
       }, 5000);
@@ -119,7 +134,6 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
     );
     socketRef.current = socket;
 
-    // Inicializa mapa e, em seguida, conecta socket
     mapa.init().then(() => {
       if (!desmontado) {
         socket.conectar();
@@ -143,11 +157,10 @@ const MapaTempoReal = ({ userId, userType, wsUrl, className = '' }) => {
 
       socketRef.current?.desconectar();
     };
-  }, [mapsCarregados, wsUrl, userId, userType]);
+  }, [mapsCarregados, wsUrl, userId, userType, raioKm]);
 
   return (
     <div className={`flex flex-col w-full h-full ${className}`}>
-      {/* container do mapa — o pai controla altura/largura */}
       <div
         ref={mapDivRef}
         className="

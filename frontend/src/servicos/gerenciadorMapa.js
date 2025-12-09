@@ -4,9 +4,8 @@
 import marcadorUsuario from '../ativos/marcador-usuario.png';
 import marcadorVendedor from '../ativos/marcador-vendedor.png';
 
-
 export class GerenciadorMapa {
-  constructor({ element, userId, userType }) {
+  constructor({ element, userId, userType, onVendedorClick }) {
     this.element = element;
     this.map = null;
     this.markers = {}; // { id: AdvancedMarkerElement }
@@ -17,6 +16,8 @@ export class GerenciadorMapa {
 
     this.AdvancedMarkerElement = null;
     this.PinElement = null;
+
+    this.onVendedorClick = onVendedorClick || null;
 
     this.mapId =
       import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
@@ -39,53 +40,58 @@ export class GerenciadorMapa {
       center: { lat: -23.5505, lng: -46.6333 },
       zoom: 14,
       mapId: this.mapId,
-
-       // Remove todos os controles padrão (zoom, street view, tipo de mapa etc.)
       disableDefaultUI: true,
-
-      // (Opcional) se você quiser manter algo, pode reativar individualmente:
       zoomControl: false,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
       scaleControl: false,
     });
-
-    
   }
 
-_construirConteudoMarcador(urlIcone, textoLabel, corTexto) {
-  const container = document.createElement('div');
-  container.className = 'toaki-marker';
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.alignItems = 'center';
-  container.style.gap = '4px';
+  _construirConteudoMarcador(urlIcone, textoLabel, corTexto, onClick) {
+    const container = document.createElement(onClick ? 'button' : 'div');
+    container.className = 'toaki-marker';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.alignItems = 'center';
+    container.style.gap = '4px';
 
-  const label = document.createElement('div');
-  label.className = 'toaki-marker-label';
-  label.textContent = textoLabel;
-  label.style.color = corTexto;
-  label.style.backgroundColor = 'rgba(255,255,255,0.96)';
-  label.style.padding = '4px 10px';
-  label.style.borderRadius = '9999px';
-  label.style.fontSize = '12px';
-  label.style.fontWeight = '600';
-  label.style.whiteSpace = 'nowrap';
-  label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.18)';
+    if (onClick) {
+      container.type = 'button';
+      container.style.cursor = 'pointer';
+      container.style.background = 'transparent';
+      container.style.border = 'none';
+      container.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+      });
+    }
 
-  const img = document.createElement('img');
-  img.src = urlIcone;
-  img.className = 'toaki-marker-icon';
-  img.style.width = '24px';
-  img.style.height = 'auto';
-  img.style.display = 'block';
+    const label = document.createElement('div');
+    label.className = 'toaki-marker-label';
+    label.textContent = textoLabel;
+    label.style.color = corTexto;
+    label.style.backgroundColor = 'rgba(255,255,255,0.96)';
+    label.style.padding = '4px 10px';
+    label.style.borderRadius = '9999px';
+    label.style.fontSize = '12px';
+    label.style.fontWeight = '600';
+    label.style.whiteSpace = 'nowrap';
+    label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.18)';
 
-  container.appendChild(label);
-  container.appendChild(img);
+    const img = document.createElement('img');
+    img.src = urlIcone;
+    img.className = 'toaki-marker-icon';
+    img.style.width = '24px';
+    img.style.height = 'auto';
+    img.style.display = 'block';
 
-  return container;
-}
+    container.appendChild(label);
+    container.appendChild(img);
+
+    return container;
+  }
 
   atualizarMeuMarcador(lat, lon) {
     if (!this.map || !this.AdvancedMarkerElement) return;
@@ -98,7 +104,7 @@ _construirConteudoMarcador(urlIcone, textoLabel, corTexto) {
       const conteudo = this._construirConteudoMarcador(
         marcadorUsuario,
         'Você',
-        'var(--cor-marca-secundaria)' // seu ciano
+        'var(--cor-marca-secundaria)'
       );
 
       this.myMarker = new this.AdvancedMarkerElement({
@@ -116,7 +122,6 @@ _construirConteudoMarcador(urlIcone, textoLabel, corTexto) {
   atualizarMarcadorTerceiro(data) {
     if (!this.map || !this.AdvancedMarkerElement) return;
 
-    // Mesmo filtro de si mesmo que você tinha
     if (
       String(data.id) === String(this.userId) &&
       this.userType === 'VENDEDOR'
@@ -146,16 +151,27 @@ _construirConteudoMarcador(urlIcone, textoLabel, corTexto) {
       this.markers[id].position = pos;
 
       const labelDiv =
-        this.markers[id].content.querySelector('.marker-label');
+        this.markers[id].content.querySelector('.toaki-marker-label');
       if (labelDiv && labelDiv.textContent !== nome) {
         labelDiv.textContent = nome;
       }
     } else {
+      const handleClick = () => {
+        if (this.onVendedorClick) {
+          this.onVendedorClick({
+            id,
+            nome,
+            latitude: lat,
+            longitude: lon,
+          });
+        }
+      };
 
       const conteudo = this._construirConteudoMarcador(
         marcadorVendedor,
         nome,
-        '#E86F3E' // laranja mais forte, ajuste se quiser
+        '#E86F3E',
+        handleClick
       );
 
       this.markers[id] = new this.AdvancedMarkerElement({
