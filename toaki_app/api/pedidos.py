@@ -20,7 +20,7 @@ class ItemIn(Schema):
 
 class PedidoIn(Schema):
     perfil_vendedor_id: str
-    itens: List[ItemIn]
+    itens: List[ItemIn] | None = None
 
 
 class PedidoOut(Schema):
@@ -35,8 +35,9 @@ class PedidoUpdateIn(Schema):
     status: str | None = None
     pedido_visto: bool | None = None
 
-
-
+    # ainda em pedidos.py
+class ChamarVendedorIn(Schema):
+    perfil_vendedor_id: str
 
 @router.post("/", response=PedidoOut)
 def criar_pedido(request, payload: PedidoIn):
@@ -55,18 +56,33 @@ def criar_pedido(request, payload: PedidoIn):
     except PerfilVendedor.DoesNotExist:
         raise HttpError(404, "Vendedor não encontrado")
 
-    if not payload.itens:
-        raise HttpError(400, "O pedido precisa ter pelo menos um item")
+    itens = payload.itens or []
 
+    # 👉 CASO 1: apenas “chamar vendedor” (sem itens)
+    if not itens:
+        pedido = Pedido.objects.create(
+            perfil_cliente=perfil_cliente,
+            perfil_vendedor=perfil_vendedor,
+            valor_total=Decimal("0.00"),
+        )
+
+        return PedidoOut(
+            id=str(pedido.id),
+            perfil_cliente_id=str(pedido.perfil_cliente_id),
+            perfil_vendedor_id=str(pedido.perfil_vendedor_id),
+            valor_total=float(pedido.valor_total),
+            status=pedido.status,
+            pedido_visto=pedido.pedido_visto,
+        )
+
+    # 👉 CASO 2: fluxo atual, com itens (mantém o que já existe hoje)
     # Buscar todos os produtos de uma vez
-    produtos_ids = [item.produto_id for item in payload.itens]
+    produtos_ids = [item.produto_id for item in itens]
 
-    # Filtra pelo id em string/UUID e monta um mapa com chave em str(id)
     produtos = Produto.objects.filter(id__in=produtos_ids)
-    produtos_map = {str(p.id): p for p in produtos}  # dict: {"uuid-str": Produto}
+    produtos_map = {str(p.id): p for p in produtos}
 
-    # Validação de produtos inexistentes e quantidades
-    for item in payload.itens:
+    for item in itens:
         produto = produtos_map.get(item.produto_id)
         if produto is None:
             raise HttpError(400, f"Produto {item.produto_id} não encontrado")
@@ -78,19 +94,15 @@ def criar_pedido(request, payload: PedidoIn):
         valor_total = Decimal("0.00")
         itens_para_criar: list[PedidoProduto] = []
 
-        # Primeiro criamos o pedido com valor_total 0, depois ajustamos
         pedido = Pedido.objects.create(
             perfil_cliente=perfil_cliente,
             perfil_vendedor=perfil_vendedor,
             valor_total=Decimal("0.00"),
         )
 
-        for item in payload.itens:
+        for item in itens:
             produto = produtos_map[item.produto_id]
-
-            # Ajuste aqui conforme o campo de preço do seu Produto
             preco_unitario = Decimal(str(produto.preco))
-
             subtotal = preco_unitario * item.quantidade
             valor_total += subtotal
 
@@ -104,8 +116,6 @@ def criar_pedido(request, payload: PedidoIn):
             )
 
         PedidoProduto.objects.bulk_create(itens_para_criar)
-
-        # Atualiza o valor_total do pedido com o somatório real
         pedido.valor_total = valor_total
         pedido.save(update_fields=["valor_total"])
 
@@ -117,6 +127,7 @@ def criar_pedido(request, payload: PedidoIn):
         status=pedido.status,
         pedido_visto=pedido.pedido_visto,
     )
+
 
 
 @router.get("/", response=List[PedidoOut])
