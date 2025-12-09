@@ -4,9 +4,9 @@ services:
     image: postgis/postgis:15-3.3
     container_name: toaki_geo_db
     environment:
-      - POSTGRES_DB=toaki_geo_db
-      - POSTGRES_USER=toaki_usuario
-      - POSTGRES_PASSWORD=toaki_senha
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -32,15 +32,16 @@ services:
       - db
       - redis
     environment:
-      - DEBUG=1
-      - SECRET_KEY=dev_secret_key
-      - DB_NAME=toaki_geo_db
-      - DB_USER=toaki_usuario
-      - DB_PASSWORD=toaki_senha
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - REDIS_URL=${REDIS_URL}
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+
   frontend:
     build: ./frontend
     container_name: toaki_front
@@ -50,7 +51,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=localhost:8000
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
     depends_on:
       - web
 
