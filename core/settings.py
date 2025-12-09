@@ -66,15 +66,15 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://toaki-app.vercel.app/",
-    "toaki-app-mk4r.onrender.com,toaki-app.vercel.app",
+    "https://toaki-app.vercel.app",
+    
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://toaki-app.vercel.app/",
-    "toaki-app-mk4r.onrender.com",
+    "https://toaki-app-mk4r.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
