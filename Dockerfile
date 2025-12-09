@@ -21,6 +21,12 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+# >>> ADICIONE ESTA LINHA AQUI <<<
+RUN python manage.py collectstatic --noinput
+
+# >>> MIGRAÇÕES AQUI TAMBÉM <<<
+RUN python manage.py migrate
+
 EXPOSE 8000
 
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
