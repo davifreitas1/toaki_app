@@ -16,10 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-now')
 
 # Lê o DEBUG do docker-compose.yml (True em dev)
-DEBUG = env('DEBUG')
+DEBUG = env('DEBUG', default=False)
 
 # Permite acesso de qualquer lugar (necessário para Docker/React Native/Leaflet)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
@@ -50,13 +50,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -97,13 +99,13 @@ ASGI_APPLICATION = 'core.asgi.application'
 
 # 5. Banco de Dados (PostGIS)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env("DB_NAME", default="toaki_db"),
+        "USER": env("DB_USER", default="toaki_user"),
+        "PASSWORD": env("DB_PASSWORD", default="toaki_pass"),
+        "HOST": env("DB_HOST", default="localhost"),
+        "PORT": env("DB_PORT", default="5432"),
     }
 }
 
@@ -112,7 +114,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [env('REDIS_URL')],
+            "hosts": [env("REDIS_URL", default="redis://localhost:6379/0")],
         },
     },
 }
@@ -134,6 +136,7 @@ USE_TZ = True
 # 9. Arquivos Estáticos
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # 10. Arquivos de mídia (uploads de usuários)
 MEDIA_URL = '/media/'

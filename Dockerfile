@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     binutils \
     libproj-dev \
     gdal-bin \
+    libgdal-dev \
     python3-gdal \
     build-essential \
     libpq-dev \
@@ -20,4 +21,9 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+EXPOSE 8000
+
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"]
+# Se o asgi estiver em outro módulo, troque acima para, por exemplo:
+# CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "toaki_app.asgi:application"]
