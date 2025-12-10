@@ -1,5 +1,10 @@
-echo "==> Criando/atualizando superusuário..."
+#!/usr/bin/env bash
+set -o errexit  # se der erro, para
 
+echo "==> Rodando migrações..."
+python manage.py migrate --noinput
+
+echo "==> Criando/atualizando superusuário..."
 python manage.py shell << 'EOF'
 from django.contrib.auth import get_user_model
 import os
