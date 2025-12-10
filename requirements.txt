@@ -10,3 +10,4 @@ python-geohash>=0.8.5
 geopy>=2.4.0
 django-ninja>=0.22.0
 django-cors-headers>=4.3.0
+whitenoise>=6.6.0
