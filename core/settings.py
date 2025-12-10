@@ -19,7 +19,11 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-now')
 DEBUG = env('DEBUG')
 
 # Permite acesso de qualquer lugar (necessário para Docker/React Native/Leaflet)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "toaki-app-1.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
@@ -75,7 +79,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://toaki-app.vercel.app/",
-    "https://toaki-app-mk4r.onrender.com",
+    "https://toaki-app-1.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
