@@ -18,6 +18,7 @@ import {
   X,
   Dock,
   IdCard,
+  Send,
 } from 'lucide-react';
 
 const MAPA_ICONES = {
@@ -38,6 +39,7 @@ const MAPA_ICONES = {
   editar: Edit2,
   documento: Dock,
   idRegistro: IdCard,
+  enviar: Send,
 };
 
 const Icone = ({
