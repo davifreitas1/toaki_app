@@ -23,6 +23,7 @@ ALLOWED_HOSTS = [
     "toaki-app-1.onrender.com",
     "localhost",
     "127.0.0.1",
+    "https://toaki-app.vercel.app",
 ]
 
 # 3. Aplicações Instaladas
