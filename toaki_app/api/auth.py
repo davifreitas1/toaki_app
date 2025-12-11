@@ -21,6 +21,7 @@ class RegisterIn(Schema):
     first_name: str | None = None
     email: str | None = None
     tipo_usuario: str | None = None
+    nome_fantasia: str | None = None
     
 
 
@@ -83,6 +84,18 @@ def register(request, payload: RegisterIn):
     except IntegrityError:
         raise HttpError(400, "Usuário já existe")
     # NOTA: se quiser criar perfis automaticamente, chame perfis.py ou um helper aqui.
+    # Cria perfil automático para vendedores
+    if tipo_usuario == Usuario.TipoUsuario.VENDEDOR:
+        try:
+            from ..models import PerfilVendedor
+
+            PerfilVendedor.objects.create(
+                usuario=user,
+                nome_fantasia=(payload.nome_fantasia or payload.first_name or payload.username),
+            )
+        except Exception as exc:
+            # Mantemos o usuário criado, mas avisamos o client
+            raise HttpError(400, f"Usuário criado mas não foi possível criar perfil de vendedor: {exc}")
     return user
 
 
