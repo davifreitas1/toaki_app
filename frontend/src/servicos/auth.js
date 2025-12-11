@@ -128,3 +128,41 @@ export const registrarUsuario = async ({ nome, email, senha }) => {
     return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
   }
 };
+
+export const registrarVendedor = async ({ nomeFantasia, email, senha }) => {
+  const url = obterUrlHttp('/api/register');
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: email,
+        first_name: nomeFantasia,
+        email: email,
+        password: senha,
+        tipo_usuario: 'VENDEDOR',
+        nome_fantasia: nomeFantasia,
+      }),
+    });
+
+    let dados = {};
+    try {
+      dados = await response.json();
+    } catch {
+      dados = {};
+    }
+
+    let erroMsg = null;
+    if (!response.ok && dados.detail) {
+      erroMsg = dados.detail;
+    }
+
+    return { sucesso: response.ok, dados, erro: erroMsg };
+  } catch (erro) {
+    console.error('Erro no registro de vendedor:', erro);
+    return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
+  }
+};

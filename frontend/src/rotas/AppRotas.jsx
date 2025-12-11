@@ -8,6 +8,9 @@ import LoginPagina from '../paginas/LoginPagina';
 import CadastroPagina from '../paginas/CadastroPagina';
 import Pagina404 from '../paginas/Pagina404';
 import TelaPrincipalCliente from '../paginas/TelaPrincipalCliente';
+import LoginVendedorPagina from '../paginas/LoginVendedorPagina';
+import CadastroVendedorPagina from '../paginas/CadastroVendedorPagina';
+import TelaPrincipalVendedor from '../paginas/TelaPrincipalVendedor';
 
 // Componente de Rota Privada
 const RotaPrivada = ({ children }) => {
@@ -36,6 +39,8 @@ const AppRotas = () => {
         {/* Rotas públicas */}
         <Route path="/login" element={<LoginPagina />} />
         <Route path="/cadastro" element={<CadastroPagina />} />
+        <Route path="/vendedor/login" element={<LoginVendedorPagina />} />
+        <Route path="/vendedor/cadastro" element={<CadastroVendedorPagina />} />
 
         {/* Rotas protegidas */}
         <Route
@@ -43,6 +48,14 @@ const AppRotas = () => {
           element={
             <RotaPrivada>
               <TelaPrincipalCliente />
+            </RotaPrivada>
+          }
+        />
+        <Route
+          path="/vendedor/app"
+          element={
+            <RotaPrivada>
+              <TelaPrincipalVendedor />
             </RotaPrivada>
           }
         />

@@ -42,9 +42,7 @@ export const AuthProvider = ({ children }) => {
 
       setAutenticado(estaAutenticado);
       setUsuario(usuarioLogado);
-    } else {
-      setAutenticado(false);
-      setUsuario(null);
+      return { ...resultado, usuario: usuarioLogado };
     }
 
     return resultado;

@@ -78,6 +78,11 @@ export class GerenciadorMapa {
     if (onClick) {
       container.type = 'button';
       container.style.cursor = 'pointer';
+      container.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      });
     }
 
     // Label "Vendedor 2" / "Você"

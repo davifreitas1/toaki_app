@@ -9,7 +9,7 @@ import QuadradoRedeSocial from '../atomos/QuadradoRedeSocial';
 import DivisorOu from '../moleculas/DivisorOu';
 import { useAuth } from '../../contextos/AuthContext';
 
-const FormularioLogin = () => {
+const FormularioLogin = ({ redirectPath }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -25,8 +25,26 @@ const FormularioLogin = () => {
     const resultado = await login(email, senha);
     if (resultado?.sucesso) navigate('/app');
     else setErro('Credenciais inválidas');
+
+    if (resultado?.sucesso) {
+      const destinoCalculado =
+        redirectPath ||
+        (resultado.usuario?.tipo_usuario === 'VENDEDOR'
+          ? '/vendedor/app'
+          : '/app');
+
+      navigate(destinoCalculado, { replace: true });
+    } else {
+      setErro('Credenciais inválidas');
+    }
     setCarregando(false);
   };
+
+  const isVendorFlow = redirectPath === '/vendedor/app' || redirectPath === 'vendedor/app';
+  const alternateLink = isVendorFlow
+    ? { to: '/login', label: 'Entrar como Cliente' }
+    : { to: '/vendedor/login', label: 'Entrar como Vendedor' };
+  const cadastroLink = isVendorFlow ? '/vendedor/cadastro' : '/cadastro';
 
   return (
     <div
@@ -138,6 +156,21 @@ const FormularioLogin = () => {
         >
           Entrar como Convidado
         </Hyperlink>
+
+        {alternateLink?.to && (
+          <div className="mt-2 text-center">
+            <Hyperlink
+              to={alternateLink.to}
+              className="
+                text-[var(--cor-link-primaria)] font-['Montserrat']
+                text-[12px] font-semibold
+                md:text-[14px] md:font-semibold
+              "
+            >
+              {alternateLink.label}
+            </Hyperlink>
+          </div>
+        )}
       </div>
 
       {/* Divisor "Entrar com" */}
@@ -155,7 +188,7 @@ const FormularioLogin = () => {
       {/* Rodapé - Cadastro */}
       <div className="mt-auto text-[10px] md:text-[16px] font-normal text-black font-['Montserrat']">
         <span>Não tem conta ? </span>
-        <Hyperlink to="/cadastro" className="text-[var(--cor-link-primaria)] font-semibold md:text-[16px]">
+        <Hyperlink to={cadastroLink} className="text-[var(--cor-link-primaria)] font-semibold md:text-[16px]">
           cadastre-se
         </Hyperlink>
       </div>
