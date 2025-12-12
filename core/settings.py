@@ -23,7 +23,7 @@ ALLOWED_HOSTS = [
     "toaki-app-1.onrender.com",
     "localhost",
     "127.0.0.1",
-    "https://toaki-app.vercel.app",
+    "toaki-app.vercel.app",
 ]
 
 # 3. Aplicações Instaladas
@@ -79,15 +79,15 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://toaki-app.vercel.app",
+    "toaki-app.vercel.app",
     
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://toaki-app.vercel.app",
-    "https://toaki-app-1.onrender.com",
+    "toaki-app.vercel.app",
+    "toaki-app-1.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
