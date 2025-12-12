@@ -12,6 +12,8 @@ import {
   obterPerfilVendedorComStatus,
 } from '../servicos/perfis';
 import BotaoLogoutTemporario from '../componentes/atomos/BotaoLogoutTemporario';
+import PopupPedidoVendedor from '../componentes/organismos/PopupPedidoVendedor';
+import { atualizarPedido, listarPedidosVendedor } from '../servicos/pedidos';
 
 const TelaPrincipalVendedor = () => {
     const { usuario, autenticado } = useAuth();
@@ -27,6 +29,11 @@ const TelaPrincipalVendedor = () => {
   const [perfilVendedor, setPerfilVendedor] = useState(
     usuario?.perfilVendedor || usuario?.perfil_vendedor || null
   );
+  const [pedidoEmAberto, setPedidoEmAberto] = useState(null);
+  const [carregandoPedido, setCarregandoPedido] = useState(false);
+
+  const perfilVendedorId =
+    perfilVendedor?.id || usuario?.perfilVendedor?.id || usuario?.perfil_vendedor?.id;
 
   useEffect(() => {
     setPerfilVendedor(usuario?.perfilVendedor || usuario?.perfil_vendedor);
@@ -54,8 +61,42 @@ const TelaPrincipalVendedor = () => {
     carregarPerfil();
   }, [autenticado]);
 
-  const perfilVendedorId =
-    perfilVendedor?.id || usuario?.perfilVendedor?.id || usuario?.perfil_vendedor?.id;
+  useEffect(() => {
+    if (!autenticado || !perfilVendedorId) return;
+
+    let cancelado = false;
+
+    const carregarPendentes = async () => {
+      try {
+        const lista = await listarPedidosVendedor({ status: 'PENDENTE' });
+        if (cancelado) return;
+
+        setPedidoEmAberto((atual) => {
+          if (atual && lista.find((p) => p.id === atual.id)) return atual;
+          return lista[0] || null;
+        });
+      } catch (e) {
+        console.error('Erro ao buscar pedidos pendentes', e);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        carregarPendentes();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    carregarPendentes();
+    const intervalId = setInterval(carregarPendentes, 2000);
+
+    return () => {
+      cancelado = true;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(intervalId);
+    };
+  }, [autenticado, perfilVendedorId]);
+
   const nomeUsuario = usuario?.nome || 'Nome';
 
   const alternarOnline = async () => {
@@ -93,6 +134,31 @@ const TelaPrincipalVendedor = () => {
     }
   };
 
+  const responderPedido = async (statusAlvo) => {
+    if (!pedidoEmAberto || carregandoPedido) return;
+
+    setCarregandoPedido(true);
+    try {
+      await atualizarPedido(pedidoEmAberto.id, {
+        status: statusAlvo,
+        pedido_visto: true,
+      });
+      setPedidoEmAberto(null);
+      setFeedback(
+        statusAlvo === 'CONFIRMADO'
+          ? 'Você aceitou o pedido. Cliente foi notificado.'
+          : 'Você recusou o pedido. Cliente foi notificado.'
+      );
+      setTimeout(() => setFeedback(''), 4000);
+    } catch (error) {
+      console.error('Erro ao responder pedido', error);
+      setFeedback('Não foi possível atualizar o pedido agora.');
+      setTimeout(() => setFeedback(''), 3000);
+    } finally {
+      setCarregandoPedido(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full bg-[var(--cor-fundo-primaria)] overflow-hidden">
       <div className="fixed top-4 right-4 z-50 pointer-events-auto">
@@ -106,6 +172,13 @@ const TelaPrincipalVendedor = () => {
           className="w-full h-full"
         />
       </div>
+
+      <PopupPedidoVendedor
+        pedido={pedidoEmAberto}
+        onAceitar={() => responderPedido('CONFIRMADO')}
+        onRecusar={() => responderPedido('CANCELADO')}
+        carregando={carregandoPedido}
+      />
 
       {feedback && (
         <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 pointer-events-none">
