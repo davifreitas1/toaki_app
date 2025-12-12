@@ -1,45 +1,29 @@
 from urllib.parse import parse_qs
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
+from channels.middleware import BaseMiddleware
 from channels.db import database_sync_to_async
-
-from toaki_app.auth.jwt_utils import decode_token
+from toaki_app.jwt_utils import decode_token
 
 User = get_user_model()
 
-
 @database_sync_to_async
-def get_user_by_id(user_id: int):
+def get_user_from_token(token: str):
     try:
-        return User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return AnonymousUser()
+        payload = decode_token(token)
+        return User.objects.get(id=payload["user_id"])
+    except Exception:
+        return None
 
-
-class JwtAuthMiddleware:
-    """
-    Autentica o WebSocket via token JWT no querystring:
-
-    wss://.../ws/mapa/?token=SEU_TOKEN
-    """
-
-    def __init__(self, inner):
-        self.inner = inner
-
+class JwtAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        scope["user"] = AnonymousUser()
-
         query_string = scope.get("query_string", b"").decode()
         params = parse_qs(query_string)
-        token = (params.get("token") or [None])[0]
+        token_list = params.get("token")
 
-        if token:
-            try:
-                payload = decode_token(token)
-                sub = payload.get("sub")
-                if sub:
-                    scope["user"] = await get_user_by_id(int(sub))
-            except Exception:
-                scope["user"] = AnonymousUser()
+        user = None
+        if token_list:
+            token = token_list[0]
+            user = await get_user_from_token(token)
 
-        return await self.inner(scope, receive, send)
+        scope["user"] = user
+        return await super().__call__(scope, receive, send)

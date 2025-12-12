@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login as dj_login, logout as dj_lo
 from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
 from django.db import IntegrityError
+from toaki_app.jwt_utils import decode_token
 
 Usuario = get_user_model()
 router = Router()

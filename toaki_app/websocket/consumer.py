@@ -7,24 +7,22 @@ class ToAkiConsumer(AsyncJsonWebsocketConsumer):
     Não contém regras de negócio. Apenas gerencia conexão e chama o Dispatcher.
     """
 
+
     async def connect(self):
-        # user vem do AuthMiddlewareStack → sempre em scope["user"]
         user = self.scope.get("user", None)
         print("User no connect:", user)
 
-        if user is None or user.is_anonymous:
-            print("Conexão WS rejeitada: usuário anônimo.")
+        if not user:
+            print("Conexão WS rejeitada: token inválido ou ausente.")
             await self.close()
             return
 
-        # a partir daqui sabemos que é autenticado
         self.user = user
         print("Conexão WS aceita para:", self.user)
 
         await self.accept()
-
-        # Instancia o roteador vinculado a esta conexão
         self.roteador = RoteadorSocket(self)
+
 
     async def disconnect(self, close_code):
         # Lógica de limpeza de grupos (Redis) virá aqui
