@@ -6,12 +6,12 @@ from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 from pydantic import Field
-from django.db import IntegrityError, transaction
-from django.db.models import Q
+
+from .auth_jwt import JWTAuth
 
 from ..models import PerfilVendedor, PerfilCliente  # não importamos Categoria diretamente
 
-router = Router(tags=["perfis"])
+router = Router(tags=["perfis"], auth=JWTAuth())
 
 
 # ----------------------

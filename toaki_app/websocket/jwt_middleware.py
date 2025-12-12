@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
 
-from toaki_app.auth.jwt_utils import decode_token
+from toaki_app.jwt_utils import decode_token
+
 
 User = get_user_model()
 

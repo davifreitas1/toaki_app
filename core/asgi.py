@@ -8,12 +8,13 @@ django_asgi_app = get_asgi_application()
 
 
 
-import toaki_app.websocket_urls
-from toaki_app.websocket.jwt_middleware import JwtAuthMiddleware
+
+from toaki_app.websocket_urls import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": JwtAuthMiddleware(
-        URLRouter(toaki_app.websocket_urls.websocket_urlpatterns)
-    ),
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(websocket_urlpatterns)
+        )
+    ,
 })
