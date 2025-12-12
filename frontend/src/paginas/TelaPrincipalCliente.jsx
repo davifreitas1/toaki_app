@@ -19,6 +19,9 @@ const TelaPrincipalCliente = () => {
   const [vendedorSelecionado, setVendedorSelecionado] = useState(null);
   const [feedback, setFeedback] = useState('');
 
+    // Navegação inferior
+  const [itemAtivoBarra, setItemAtivoBarra] = useState('home');
+
   // Modal de pedidos / rastreio
   const [mostrarModalPedidos, setMostrarModalPedidos] = useState(false);
   const [pedidoRastreado, setPedidoRastreado] = useState(null);
@@ -165,8 +168,14 @@ const TelaPrincipalCliente = () => {
         {/* BARRA DE NAVEGAÇÃO MOBILE */}
         <div className="md:hidden px-4 pb-4 pointer-events-auto">
           <BarraNavegacaoInferior
-            itemAtivo="home"
-            onItemChange={(id) => console.log('Trocar aba para', id)}
+            itemAtivo={itemAtivoBarra}
+            onItemChange={(id) => {
+              setItemAtivoBarra(id);
+
+              if (id === 'tag') {
+                setMostrarModalPedidos(true);
+              }
+            }}
           />
         </div>
       </div>
