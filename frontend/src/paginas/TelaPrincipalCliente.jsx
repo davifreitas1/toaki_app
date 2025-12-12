@@ -10,6 +10,7 @@ import { obterUrlWs } from '../uteis/apiConfig';
 import { useAuth } from '../contextos/AuthContext';
 import logoToAkiMini from '../ativos/toaki_logo.png';
 import BotaoLogoutTemporario from '../componentes/atomos/BotaoLogoutTemporario';
+import { obterPedido } from '../servicos/pedidos';
 
 const TelaPrincipalCliente = () => {
   const { usuario } = useAuth();
@@ -27,6 +28,9 @@ const TelaPrincipalCliente = () => {
   const [pedidoRastreado, setPedidoRastreado] = useState(null);
   const [distanciaRastreamentoKm, setDistanciaRastreamentoKm] =
     useState(null);
+  const [pedidoAguardandoResposta, setPedidoAguardandoResposta] = useState(
+    null
+  );
 
   const nomeUsuario = usuario?.nome || 'Nome';
 
@@ -35,9 +39,10 @@ const TelaPrincipalCliente = () => {
     setVendedorSelecionado(vendedorDoMapa);
   };
 
-  const handlePedidoCriado = () => {
+  const handlePedidoCriado = (pedido) => {
     setVendedorSelecionado(null);
-    setFeedback('Seu pedido foi enviado, por favor, aguarde.');
+    setPedidoAguardandoResposta(pedido);
+    setFeedback('Seu pedido foi enviado, aguardando resposta do vendedor.');
 
     setTimeout(() => {
       setFeedback('');
@@ -48,6 +53,44 @@ const TelaPrincipalCliente = () => {
     setPedidoRastreado(null);
     setDistanciaRastreamentoKm(null);
   };
+
+  // Monitora o status de um pedido recém-criado até o vendedor responder
+  React.useEffect(() => {
+    if (!pedidoAguardandoResposta?.id) return undefined;
+
+    let cancelado = false;
+
+    const verificarStatus = async () => {
+      try {
+        const detalhe = await obterPedido(pedidoAguardandoResposta.id);
+        if (cancelado) return;
+
+        if (!detalhe || detalhe.status === pedidoAguardandoResposta.status) {
+          return;
+        }
+
+        setPedidoAguardandoResposta(detalhe);
+
+        if (['CONFIRMADO', 'EM_ANDAMENTO'].includes(detalhe.status)) {
+          setFeedback('O vendedor aceitou seu pedido!');
+          setPedidoAguardandoResposta(null);
+          setTimeout(() => setFeedback(''), 4000);
+        } else if (detalhe.status === 'CANCELADO') {
+          setFeedback('O vendedor recusou seu pedido.');
+          setPedidoAguardandoResposta(null);
+          setTimeout(() => setFeedback(''), 4000);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status do pedido', error);
+      }
+    };
+
+    const intervalId = setInterval(verificarStatus, 4000);
+    return () => {
+      cancelado = true;
+      clearInterval(intervalId);
+    };
+  }, [pedidoAguardandoResposta?.id, pedidoAguardandoResposta?.status]);
 
   return (
     <div className="relative min-h-screen w-full bg-[var(--cor-fundo-primaria)] overflow-hidden">

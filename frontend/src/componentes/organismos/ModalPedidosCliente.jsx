@@ -20,6 +20,8 @@ const statusLabel = (status) => {
   }
 };
 
+const podeRastrear = (status) => ['CONFIRMADO', 'EM_ANDAMENTO'].includes(status);
+
 const ModalPedidosCliente = ({ aberto, onClose, onRastrear }) => {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
@@ -138,8 +140,9 @@ const ModalPedidosCliente = ({ aberto, onClose, onRastrear }) => {
                   <div className="mt-2 flex justify-end">
                     <button
                       type="button"
+                      disabled={!podeRastrear(pedido.status)}
                       onClick={() => {
-                        if (onRastrear) {
+                        if (onRastrear && podeRastrear(pedido.status)) {
                           onRastrear(pedido);
                         }
                       }}
@@ -151,9 +154,13 @@ const ModalPedidosCliente = ({ aberto, onClose, onRastrear }) => {
                         text-[var(--cor-marca-secundaria)]
                         hover:bg-[var(--cor-marca-secundaria)]/5
                         transition-colors
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
                       "
                     >
-                      Rastrear
+                      {podeRastrear(pedido.status)
+                        ? 'Rastrear'
+                        : 'Aguardando vendedor'}
                     </button>
                   </div>
                 </div>
