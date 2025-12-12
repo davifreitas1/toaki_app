@@ -9,6 +9,7 @@ import ModalPedidosCliente from '../componentes/organismos/ModalPedidosCliente';
 import { obterUrlWs } from '../uteis/apiConfig';
 import { useAuth } from '../contextos/AuthContext';
 import logoToAkiMini from '../ativos/toaki_logo.png';
+import BotaoLogoutTemporario from '../componentes/atomos/BotaoLogoutTemporario';
 
 const TelaPrincipalCliente = () => {
   const { usuario } = useAuth();
@@ -48,6 +49,9 @@ const TelaPrincipalCliente = () => {
   return (
     <div className="relative min-h-screen w-full bg-[var(--cor-fundo-primaria)] overflow-hidden">
       {/* MAPA EM TELA CHEIA (fica por trás de tudo) */}
+      <div className="fixed top-4 right-4 z-50 pointer-events-auto">
+        <BotaoLogoutTemporario />
+      </div>
       <div className="absolute inset-0">
         <MapaTempoReal
           userId={usuario?.id}

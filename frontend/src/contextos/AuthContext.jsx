@@ -1,6 +1,6 @@
 // src/contextos/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { loginUsuario, verificarAuth } from '../servicos/auth';
+import { loginUsuario, logoutUsuario, verificarAuth } from '../servicos/auth';
 
 const AuthContext = createContext(null);
 
@@ -41,6 +41,8 @@ export const AuthProvider = ({ children }) => {
       } = await verificarAuth();
 
       setAutenticado(estaAutenticado);
+      console.log(usuarioLogado);
+      
       setUsuario(usuarioLogado);
       return { ...resultado, usuario: usuarioLogado };
     }
@@ -49,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    // TODO: chamar API de logout quando existir
+    await logoutUsuario();
     setAutenticado(false);
     setUsuario(null);
   };

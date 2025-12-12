@@ -1,4 +1,5 @@
 import { obterUrlHttp } from '../uteis/apiConfig';
+import { obterPerfilVendedor } from './perfis';
 
 export const loginUsuario = async (username, password) => {
   const url = obterUrlHttp('/api/login');
@@ -66,14 +67,20 @@ export const verificarAuth = async () => {
     const dadosProfile = await respProfile.json();
     console.log(dadosProfile);
     
-
+    
     let perfilCliente = null;
+    let perfilVendedor = null;
+
     try {
-      perfilCliente = await obterPerfilCliente();
-      console.log(perfilCliente);
-      
+      if (dadosProfile.tipo_usuario === 'CLIENTE') {
+        perfilCliente = await obterPerfilCliente();
+      }
+
+      if (dadosProfile.tipo_usuario === 'VENDEDOR') {
+        perfilVendedor = await obterPerfilVendedor();
+      }
     } catch (erroPerfil) {
-      console.error('Erro ao buscar perfil do cliente:', erroPerfil);
+      console.error('Erro ao buscar perfil:', erroPerfil);
     }
 
     const usuario = {
@@ -82,8 +89,12 @@ export const verificarAuth = async () => {
       email: dadosProfile.email,
       tipo_usuario: dadosProfile.tipo_usuario,
       perfilCliente,
-      // nome amigável para telas: usa perfil.nome se existir, senão cai pro username
-      nome: perfilCliente?.nome || dadosProfile.username,
+      perfilVendedor,
+      // nome amigável para telas: usa perfil.nome_fantasia/nome se existir, senão cai pro username
+      nome:
+        perfilCliente?.nome ||
+        perfilVendedor?.nome_fantasia ||
+        dadosProfile.username,
     };
 
     return { autenticado: true, usuario };
@@ -164,5 +175,26 @@ export const registrarVendedor = async ({ nomeFantasia, email, senha }) => {
   } catch (erro) {
     console.error('Erro no registro de vendedor:', erro);
     return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
+  }
+};
+
+export const logoutUsuario = async () => {
+  const url = obterUrlHttp('/api/logout');
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const texto = await response.text();
+      return { sucesso: false, erro: texto || 'Falha ao sair.' };
+    }
+
+    return { sucesso: true };
+  } catch (erro) {
+    console.error('Erro no logout:', erro);
+    return { sucesso: false, erro: 'Erro de conexão ao sair.' };
   }
 };
