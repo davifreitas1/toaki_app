@@ -19,7 +19,12 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-now')
 DEBUG = env('DEBUG')
 
 # Permite acesso de qualquer lugar (necessário para Docker/React Native/Leaflet)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "toaki-app-1.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    "toaki-app.vercel.app",
+]
 
 # 3. Aplicações Instaladas
 INSTALLED_APPS = [
@@ -50,25 +55,39 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    
 ]
+
+# === Cookies para autenticação cross-domain (Vercel ↔ Render) ===
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
+    "https://toaki-app.vercel.app",
+    
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://toaki-app.vercel.app",
+    "https://toaki-app-1.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -112,7 +131,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [env('REDIS_URL')],
+            "hosts": [env('REDIS_URL', default="redis://localhost:6379/0")],
         },
     },
 }
