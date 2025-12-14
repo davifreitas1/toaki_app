@@ -85,8 +85,8 @@ const ModalVendedorMapa = ({
     setErroPedido(null);
 
     try {
-      await chamarVendedor(vendedorBasico.id);
-      onPedidoCriado && onPedidoCriado();
+      const resposta = await chamarVendedor(vendedorBasico.id);
+      onPedidoCriado && onPedidoCriado(resposta);
     } catch (e) {
       console.error(e);
       setErroPedido(e.message || 'Não foi possível chamar o vendedor.');
