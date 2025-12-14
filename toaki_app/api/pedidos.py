@@ -2,6 +2,7 @@
 from decimal import Decimal
 from typing import List
 from django.shortcuts import get_object_or_404
+import math
 
 from django.db import transaction
 from ninja import Router, Schema
@@ -30,6 +31,8 @@ class PedidoOut(Schema):
     valor_total: float
     status: str
     pedido_visto: bool
+    cliente_nome: str | None = None
+    cliente_distancia_km: float | None = None
 
 class PedidoUpdateIn(Schema):
     status: str | None = None
@@ -58,7 +61,7 @@ def criar_pedido(request, payload: PedidoIn):
 
     itens = payload.itens or []
 
-    # 👉 CASO 1: apenas “chamar vendedor” (sem itens)
+    #  CASO 1: apenas “chamar vendedor” (sem itens)
     if not itens:
         pedido = Pedido.objects.create(
             perfil_cliente=perfil_cliente,
@@ -66,16 +69,9 @@ def criar_pedido(request, payload: PedidoIn):
             valor_total=Decimal("0.00"),
         )
 
-        return PedidoOut(
-            id=str(pedido.id),
-            perfil_cliente_id=str(pedido.perfil_cliente_id),
-            perfil_vendedor_id=str(pedido.perfil_vendedor_id),
-            valor_total=float(pedido.valor_total),
-            status=pedido.status,
-            pedido_visto=pedido.pedido_visto,
-        )
+        return pedido_para_out(pedido)
 
-    # 👉 CASO 2: fluxo atual, com itens (mantém o que já existe hoje)
+    #  CASO 2: fluxo atual, com itens (mantém o que já existe hoje)
     # Buscar todos os produtos de uma vez
     produtos_ids = [item.produto_id for item in itens]
 
@@ -119,14 +115,7 @@ def criar_pedido(request, payload: PedidoIn):
         pedido.valor_total = valor_total
         pedido.save(update_fields=["valor_total"])
 
-    return PedidoOut(
-        id=str(pedido.id),
-        perfil_cliente_id=str(pedido.perfil_cliente_id),
-        perfil_vendedor_id=str(pedido.perfil_vendedor_id),
-        valor_total=float(pedido.valor_total),
-        status=pedido.status,
-        pedido_visto=pedido.pedido_visto,
-    )
+    return pedido_para_out(pedido)
 
 
 
@@ -147,17 +136,49 @@ def listar_pedidos_cliente(request):
         .order_by("-criado_em")
     )
 
-    return [
-        PedidoOut(
-            id=str(p.id),
-            perfil_cliente_id=str(p.perfil_cliente_id),
-            perfil_vendedor_id=str(p.perfil_vendedor_id),
-            valor_total=float(p.valor_total),
-            status=p.status,
-            pedido_visto=p.pedido_visto,
-        )
-        for p in pedidos
-    ]
+    return [pedido_para_out(p) for p in pedidos]
+
+
+@router.get("/vendedor", response=List[PedidoOut])
+def listar_pedidos_vendedor(request, status: str | None = None):
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
+
+    try:
+        perfil_vendedor = request.user.perfil_vendedor
+    except PerfilVendedor.DoesNotExist:
+        raise HttpError(400, "Usuário não possui perfil de vendedor")
+
+    pedidos = Pedido.objects.filter(perfil_vendedor=perfil_vendedor).order_by("-criado_em")
+
+    if status:
+        valid_status = {choice[0] for choice in Pedido.Status.choices}
+        if status not in valid_status:
+            raise HttpError(400, f"Status inválido: {status}")
+        pedidos = pedidos.filter(status=status)
+
+    return [pedido_para_out(p, incluir_dados_cliente=True) for p in pedidos]
+
+
+@router.get("/{pedido_id}", response=PedidoOut)
+def obter_pedido(request, pedido_id: str):
+    if not request.user.is_authenticated:
+        raise HttpError(401, "Não autenticado")
+
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    user = request.user
+
+    perfil_cliente = getattr(user, "perfil_cliente", None)
+    perfil_vendedor = getattr(user, "perfil_vendedor", None)
+
+    is_cliente_dono = perfil_cliente is not None and str(perfil_cliente.pk) == str(pedido.perfil_cliente_id)
+    is_vendedor_dono = perfil_vendedor is not None and str(perfil_vendedor.pk) == str(pedido.perfil_vendedor_id)
+    is_admin = getattr(user, "is_staff", False)
+
+    if not (is_cliente_dono or is_vendedor_dono or is_admin):
+        raise HttpError(403, "Você não tem permissão para visualizar este pedido")
+
+    return pedido_para_out(pedido, incluir_dados_cliente=is_vendedor_dono)
 
 
 @router.delete("/{pedido_id}", response=PedidoOut)
@@ -194,14 +215,7 @@ def deletar_pedido(request, pedido_id: str):
         )
 
     # Guarda os dados antes de deletar, para poder retornar
-    resposta = PedidoOut(
-        id=str(pedido.id),
-        perfil_cliente_id=str(pedido.perfil_cliente_id),
-        perfil_vendedor_id=str(pedido.perfil_vendedor_id),
-        valor_total=float(pedido.valor_total),
-        status=pedido.status,
-        pedido_visto=pedido.pedido_visto,
-    )
+    resposta = pedido_para_out(pedido)
 
     pedido.delete()
 
@@ -249,6 +263,22 @@ def atualizar_pedido(request, pedido_id: str, payload: PedidoUpdateIn):
 
     pedido.save()
 
+    return pedido_para_out(pedido)
+
+
+def pedido_para_out(pedido: Pedido, incluir_dados_cliente: bool = False) -> PedidoOut:
+    cliente_nome = None
+    cliente_distancia_km = None
+
+    if incluir_dados_cliente:
+        perfil_cliente = getattr(pedido, "perfil_cliente", None)
+        usuario = getattr(perfil_cliente, "usuario", None) if perfil_cliente else None
+
+        if usuario:
+            nome_completo = usuario.get_full_name().strip()
+            cliente_nome = nome_completo or getattr(usuario, "nome", None) or usuario.username
+
+        cliente_distancia_km = calcular_distancia_cliente(pedido)
     return PedidoOut(
         id=str(pedido.id),
         perfil_cliente_id=str(pedido.perfil_cliente_id),
@@ -256,7 +286,37 @@ def atualizar_pedido(request, pedido_id: str, payload: PedidoUpdateIn):
         valor_total=float(pedido.valor_total),
         status=pedido.status,
         pedido_visto=pedido.pedido_visto,
+        cliente_nome=cliente_nome,
+        cliente_distancia_km=cliente_distancia_km,
     )
+
+
+def calcular_distancia_cliente(pedido: Pedido) -> float | None:
+    """Calcula a distância em km entre o cliente e o vendedor do pedido."""
+
+    ponto_vendedor = getattr(pedido.perfil_vendedor, "localizacao_atual", None)
+    perfil_cliente = getattr(pedido, "perfil_cliente", None)
+    ponto_cliente = getattr(perfil_cliente, "localizacao_atual", None) if perfil_cliente else None
+
+    if not ponto_vendedor or not ponto_cliente:
+        return None
+
+    # Haversine simples usando coordenadas lat/lon (y = lat, x = lon)
+    raio_terra_km = 6371.0
+    lat1 = math.radians(ponto_vendedor.y)
+    lon1 = math.radians(ponto_vendedor.x)
+    lat2 = math.radians(ponto_cliente.y)
+    lon2 = math.radians(ponto_cliente.x)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return round(raio_terra_km * c, 2)
 
 
 
