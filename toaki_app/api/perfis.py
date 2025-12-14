@@ -194,7 +194,7 @@ def get_perfil_vendedor_logado(request):
 
 
 @router.get("/vendedores/{vendor_id}", response=PerfilVendedorOut)
-def get_perfil_vendedor_admin(request, vendor_id: int):
+def get_perfil_vendedor_admin(request, vendor_id: str):
     perfil = get_object_or_404(PerfilVendedor, pk=vendor_id)
     return _perfil_vendedor_to_out_safe(perfil)
 
@@ -227,7 +227,7 @@ def atualizar_localizacao_vendedor(request, payload: LocalizacaoIn):
 
 
 @router.patch("/vendedores/{vendor_id}/online", response=PerfilVendedorOut)
-def set_online_vendedor(request, vendor_id: int, payload: OnlineIn):
+def set_online_vendedor(request, vendor_id: str, payload: OnlineIn):
     perfil = get_object_or_404(PerfilVendedor, pk=vendor_id)
     if not request.user.is_authenticated:
         raise HttpError(401, "Não autenticado")
@@ -248,14 +248,14 @@ def set_online_vendedor(request, vendor_id: int, payload: OnlineIn):
 # Categorias (adicionar / remover / listar) - com categoria:str
 # ----------------------
 @router.get("/vendedores/{vendor_id}/categorias", response=List[str])
-def listar_categorias_vendedor(request, vendor_id: int):
+def listar_categorias_vendedor(request, vendor_id: str):
     perfil = get_object_or_404(PerfilVendedor, pk=vendor_id)
     categorias = _get_categorias_para_perfil(perfil)
     return categorias
 
 
 @router.post("/vendedores/{vendor_id}/categorias", response={201: dict})
-def add_categoria_vendedor(request, vendor_id: int, payload: CategoriaIn):
+def add_categoria_vendedor(request, vendor_id: str, payload: CategoriaIn):
     """
     Adiciona categoria (string) para o vendedor usando VendedorCategoria.categoria.
     Retorna (201, {"ok": True}) em sucesso.
@@ -313,7 +313,7 @@ def add_categoria_vendedor(request, vendor_id: int, payload: CategoriaIn):
 
 
 @router.delete("/vendedores/{vendor_id}/categorias/{categoria_val}", response={204: None})
-def remove_categoria_vendedor(request, vendor_id: int, categoria_val: str):
+def remove_categoria_vendedor(request, vendor_id: str, categoria_val: str):
     """
     Remove a categoria (string) do vendedor.
     URL: /vendedores/{vendor_id}/categorias/{categoria_val}
