@@ -19,8 +19,8 @@ const PopupPedidoVendedor = ({
   const distancia = formatarDistancia(pedido.cliente_distancia_km);
 
   return (
-    <div className="pointer-events-auto">
-      <div className="absolute left-2 top-10 z-40 flex w-[300px] flex-col items-center gap-3 rounded-2xl bg-[#F9F9F9] p-4 shadow-[0_12px_24px_rgba(0,0,0,0.18)]">
+    <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center">
+      <div className="flex w-[300px] flex-col items-center gap-3 rounded-2xl bg-[#F9F9F9] p-4 shadow-[0_12px_24px_rgba(0,0,0,0.18)]">
         <div className="flex w-full items-center justify-center">
           <h2 className="font-['Montserrat'] text-2xl font-semibold text-black">Pedido</h2>
         </div>
